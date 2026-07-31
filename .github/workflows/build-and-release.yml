@@ -1,0 +1,165 @@
+name: Build and Publish Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Private source branch, tag, or commit
+        required: true
+        default: main
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: xianxia-public-apk-release
+  cancel-in-progress: false
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      SOURCE_REPOSITORY: junghara/xianxia-chronicle-AI-simulator
+
+    steps:
+      - name: Verify private source token
+        env:
+          SOURCE_TOKEN: ${{ secrets.SOURCE_REPO_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$SOURCE_TOKEN" ]]; then
+            echo "Repository secret SOURCE_REPO_TOKEN is required." >&2
+            exit 1
+          fi
+
+      - name: Check out private source without persisting credentials
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.SOURCE_REPOSITORY }}
+          ref: ${{ inputs.source_ref }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+          path: source
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK and NDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;3.22.1"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build ARM64 debug APK
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug \
+            -PxianxiaAbi=arm64-v8a \
+            --stacktrace \
+            --console=plain \
+            --no-daemon
+
+      - name: Verify and package APK
+        id: package
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d '\r\n' < VERSION)"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid VERSION value: $version" >&2
+            exit 1
+          fi
+
+          IFS='.' read -r major minor patch <<< "$version"
+          version_code=$((major * 1000000 + minor * 1000 + patch))
+          tag="v$version"
+          source_apk="app/build/outputs/apk/debug/app-debug.apk"
+          output_dir="release-dist"
+          apk_name="xianxia-chronicle-alpha-${version}-arm64-debug.apk"
+          output_apk="$output_dir/$apk_name"
+
+          mkdir -p "$output_dir"
+          cp "$source_apk" "$output_apk"
+
+          tools="$ANDROID_HOME/build-tools/36.0.0"
+          "$tools/apksigner" verify --verbose --print-certs "$output_apk"
+          badging="$($tools/aapt dump badging "$output_apk")"
+          grep -F "versionCode='$version_code'" <<< "$badging"
+          grep -F "versionName='$version'" <<< "$badging"
+          grep -F "native-code: 'arm64-v8a'" <<< "$badging"
+          sha256sum "$output_apk" > "$output_apk.sha256"
+
+          cat > "$output_dir/RELEASE_NOTES.md" <<EOF
+          # 선협 역사 기록서 Alpha $version
+
+          새 수행체계와 전투 계산 재설계를 위한 최소 기반 Android 버전입니다.
+
+          - 지원 ABI: ARM64 (arm64-v8a)
+          - 빌드 형식: Android Debug APK
+          - 버전 코드: $version_code
+          - 원본 소스: 비공개 저장소에서 관리
+
+          APK와 함께 제공되는 `.sha256` 파일로 다운로드 무결성을 확인할 수 있습니다.
+          EOF
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "apk_name=$apk_name" >> "$GITHUB_OUTPUT"
+          echo "apk_path=source/$output_apk" >> "$GITHUB_OUTPUT"
+          echo "checksum_path=source/$output_apk.sha256" >> "$GITHUB_OUTPUT"
+          echo "notes_path=source/$output_dir/RELEASE_NOTES.md" >> "$GITHUB_OUTPUT"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: xianxia-chronicle-alpha-${{ steps.package.outputs.version }}-android-apk
+          path: |
+            ${{ steps.package.outputs.apk_path }}
+            ${{ steps.package.outputs.checksum_path }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.package.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.package.outputs.version }}
+          APK_PATH: ${{ steps.package.outputs.apk_path }}
+          CHECKSUM_PATH: ${{ steps.package.outputs.checksum_path }}
+          NOTES_PATH: ${{ steps.package.outputs.notes_path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" \
+              "$APK_PATH#ARM64 debug APK" \
+              "$CHECKSUM_PATH#SHA-256 checksum" \
+              --clobber \
+              --repo "$GITHUB_REPOSITORY"
+            gh release edit "$RELEASE_TAG" \
+              --title "Alpha $RELEASE_VERSION" \
+              --notes-file "$NOTES_PATH" \
+              --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$RELEASE_TAG" \
+              "$APK_PATH#ARM64 debug APK" \
+              "$CHECKSUM_PATH#SHA-256 checksum" \
+              --target "$GITHUB_SHA" \
+              --title "Alpha $RELEASE_VERSION" \
+              --notes-file "$NOTES_PATH" \
+              --repo "$GITHUB_REPOSITORY"
+          fi
