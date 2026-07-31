@@ -22,8 +22,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: xianxia-public-apk-release
-  cancel-in-progress: false
+  group: xianxia-public-apk-release-${{ github.event_name }}
+  cancel-in-progress: true
 
 jobs:
   build-and-release:
@@ -171,4 +171,46 @@ jobs:
               --title "Alpha $RELEASE_VERSION" \
               --notes-file "$NOTES_PATH" \
               --repo "$GITHUB_REPOSITORY"
+          fi
+
+      - name: Record successful release status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ steps.package.outputs.version }}
+          RELEASE_TAG: ${{ steps.package.outputs.tag }}
+          APK_NAME: ${{ steps.package.outputs.apk_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          status_path=".release-status/latest.json"
+          endpoint="repos/$GITHUB_REPOSITORY/contents/$status_path"
+          completed_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          status_file="$(mktemp)"
+
+          cat > "$status_file" <<EOF
+          {
+            "status": "success",
+            "version": "$RELEASE_VERSION",
+            "tag": "$RELEASE_TAG",
+            "apk": "$APK_NAME",
+            "source_repository": "$SOURCE_REPOSITORY",
+            "source_ref": "main",
+            "workflow_run_id": "$GITHUB_RUN_ID",
+            "completed_at": "$completed_at"
+          }
+          EOF
+
+          encoded="$(base64 -w 0 "$status_file")"
+          current_sha="$(gh api "$endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          if [[ -n "$current_sha" ]]; then
+            gh api --method PUT "$endpoint" \
+              -f message="Record successful Alpha $RELEASE_VERSION APK release" \
+              -f content="$encoded" \
+              -f branch="main" \
+              -f sha="$current_sha" >/dev/null
+          else
+            gh api --method PUT "$endpoint" \
+              -f message="Record successful Alpha $RELEASE_VERSION APK release" \
+              -f content="$encoded" \
+              -f branch="main" >/dev/null
           fi
