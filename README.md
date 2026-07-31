@@ -6,22 +6,25 @@
 
 ## 최신 배포 상태
 
-- 예정 버전: **Alpha 1.0.0**
+- 최신 버전: **Alpha 1.0.0**
 - 지원 ABI: **ARM64 (`arm64-v8a`)**
 - Android 빌드: Debug APK
-- 상태: APK 빌드 및 첫 Release 준비 중
+- 상태: **빌드·검증·공개 배포 완료**
 
 ## 다운로드
 
-첫 APK가 게시되면 오른쪽의 **Releases** 영역에서 다운로드할 수 있습니다.
+- [Alpha 1.0.0 Release 열기](https://github.com/junghara/xianxia-chronicle-releases/releases/tag/v1.0.0)
+- [Alpha 1.0.0 ARM64 APK 바로 다운로드](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.0/xianxia-chronicle-alpha-1.0.0-arm64-debug.apk)
 
-1. 최신 Release를 엽니다.
-2. `xianxia-chronicle-alpha-버전-arm64-debug.apk`를 다운로드합니다.
-3. Android에서 알 수 없는 앱 설치 권한을 허용한 뒤 APK를 설치합니다.
+설치 방법:
+
+1. APK 파일을 다운로드합니다.
+2. Android에서 해당 브라우저 또는 파일 관리자의 **알 수 없는 앱 설치** 권한을 허용합니다.
+3. `xianxia-chronicle-alpha-1.0.0-arm64-debug.apk`를 실행해 설치합니다.
 
 ## 무결성 확인
 
-각 Release에는 APK와 함께 `.sha256` 체크섬 파일을 제공합니다. 다운로드한 APK의 SHA-256 값이 체크섬과 일치하는지 확인할 수 있습니다.
+Release에는 APK와 함께 `.sha256` 체크섬 파일을 제공합니다. 다운로드한 APK의 SHA-256 값이 체크섬과 일치하는지 확인할 수 있습니다.
 
 ## 주의사항
 
