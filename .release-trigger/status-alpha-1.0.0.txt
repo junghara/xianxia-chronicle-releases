@@ -1,0 +1,2 @@
+status=requested
+source=junghara/xianxia-chronicle-AI-simulator@main
