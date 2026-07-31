@@ -12,8 +12,9 @@ on:
     branches: [main]
     paths:
       - ".release-trigger/**"
-  pull_request:
+  pull_request_target:
     branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - ".release-trigger/**"
 
