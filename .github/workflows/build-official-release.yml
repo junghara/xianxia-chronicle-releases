@@ -1,0 +1,224 @@
+name: Build Official Signed Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Private source branch, tag, or commit
+        required: true
+        default: main
+        type: string
+  push:
+    branches: [main]
+    paths:
+      - ".release-trigger/official/**"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: xianxia-official-android-release
+  cancel-in-progress: false
+
+jobs:
+  build-sign-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      SOURCE_REPOSITORY: junghara/xianxia-chronicle-AI-simulator
+      SOURCE_REF: ${{ inputs.source_ref || 'main' }}
+      RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+      RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+
+    steps:
+      - name: Verify required secrets
+        env:
+          SOURCE_TOKEN: ${{ secrets.SOURCE_REPO_TOKEN }}
+          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for value in SOURCE_TOKEN KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [[ -z "${!value}" ]]; then
+              echo "Missing required repository secret for $value" >&2
+              exit 1
+            fi
+          done
+
+      - name: Check out private source
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.SOURCE_REPOSITORY }}
+          ref: ${{ env.SOURCE_REF }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+          path: source
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Restore release signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/xianxia-release-signing.p12"
+          chmod 600 "$RUNNER_TEMP/xianxia-release-signing.p12"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK and NDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;3.22.1"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build optimized unsigned Release APK
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew :app:assembleRelease \
+            -PxianxiaAbi=arm64-v8a \
+            --stacktrace \
+            --console=plain \
+            --no-daemon
+
+      - name: Align and sign official APK
+        id: package
+        working-directory: source
+        env:
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d '\r\n' < VERSION)"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          IFS='.' read -r major minor patch <<< "$version"
+          version_code=$((major * 1000000 + minor * 1000 + patch))
+
+          unsigned_apk="app/build/outputs/apk/release/app-release-unsigned.apk"
+          if [[ ! -f "$unsigned_apk" ]]; then
+            unsigned_apk="$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*release*.apk' | head -n 1)"
+          fi
+          [[ -n "$unsigned_apk" && -f "$unsigned_apk" ]]
+
+          tools="$ANDROID_HOME/build-tools/36.0.0"
+          output_dir="official-release-dist"
+          apk_name="xianxia-chronicle-alpha-${version}-arm64-release.apk"
+          aligned_apk="$output_dir/aligned-unsigned.apk"
+          output_apk="$output_dir/$apk_name"
+          mkdir -p "$output_dir"
+
+          "$tools/zipalign" -f -P 16 4 "$unsigned_apk" "$aligned_apk"
+          "$tools/apksigner" sign \
+            --ks "$RUNNER_TEMP/xianxia-release-signing.p12" \
+            --ks-type PKCS12 \
+            --ks-key-alias "$RELEASE_KEY_ALIAS" \
+            --ks-pass env:RELEASE_STORE_PASSWORD \
+            --key-pass env:RELEASE_KEY_PASSWORD \
+            --v1-signing-enabled false \
+            --v2-signing-enabled true \
+            --v3-signing-enabled true \
+            --out "$output_apk" \
+            "$aligned_apk"
+          rm -f "$aligned_apk"
+
+          "$tools/zipalign" -c -P 16 -v 4 "$output_apk"
+          "$tools/apksigner" verify --verbose --print-certs --min-sdk-version 26 "$output_apk" | tee "$output_dir/signing-certificate.txt"
+
+          badging="$($tools/aapt dump badging "$output_apk")"
+          grep -F "versionCode='$version_code'" <<< "$badging"
+          grep -F "versionName='$version'" <<< "$badging"
+          grep -F "native-code: 'arm64-v8a'" <<< "$badging"
+          if grep -Fq "application-debuggable" <<< "$badging"; then
+            echo "Refusing to publish a debuggable APK" >&2
+            exit 1
+          fi
+
+          sha256sum "$output_apk" > "$output_apk.sha256"
+          tag="v${version}-official"
+          cat > "$output_dir/RELEASE_NOTES.md" <<EOF
+          # 선협 역사 기록서 Alpha $version 정식 서명 APK
+
+          테스트용 Debug APK가 아닌 최적화·정식 서명된 Android 공개 배포 파일입니다.
+
+          - 빌드 유형: Release
+          - 디버그 가능 여부: 비활성화
+          - 코드 축소 및 최적화: 활성화
+          - 지원 ABI: ARM64 (arm64-v8a)
+          - Android 최소 버전: API 26
+          - 서명 방식: APK Signature Scheme v2/v3
+          - 원본 소스: 비공개 저장소에서 관리
+
+          기존 Debug APK와 서명 인증서가 다르므로 Debug APK가 설치되어 있다면 먼저 삭제한 뒤 설치해야 합니다.
+          EOF
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "apk_path=source/$output_apk" >> "$GITHUB_OUTPUT"
+          echo "checksum_path=source/$output_apk.sha256" >> "$GITHUB_OUTPUT"
+          echo "certificate_path=source/$output_dir/signing-certificate.txt" >> "$GITHUB_OUTPUT"
+          echo "notes_path=source/$output_dir/RELEASE_NOTES.md" >> "$GITHUB_OUTPUT"
+
+      - name: Upload verified official APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: xianxia-chronicle-alpha-${{ steps.package.outputs.version }}-official-release
+          path: |
+            ${{ steps.package.outputs.apk_path }}
+            ${{ steps.package.outputs.checksum_path }}
+            ${{ steps.package.outputs.certificate_path }}
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish official GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.package.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.package.outputs.version }}
+          APK_PATH: ${{ steps.package.outputs.apk_path }}
+          CHECKSUM_PATH: ${{ steps.package.outputs.checksum_path }}
+          CERTIFICATE_PATH: ${{ steps.package.outputs.certificate_path }}
+          NOTES_PATH: ${{ steps.package.outputs.notes_path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" \
+              "$APK_PATH#Official ARM64 Release APK" \
+              "$CHECKSUM_PATH#SHA-256 checksum" \
+              "$CERTIFICATE_PATH#Signing certificate information" \
+              --clobber \
+              --repo "$GITHUB_REPOSITORY"
+            gh release edit "$RELEASE_TAG" \
+              --title "Alpha $RELEASE_VERSION 정식 서명 APK" \
+              --notes-file "$NOTES_PATH" \
+              --latest \
+              --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$RELEASE_TAG" \
+              "$APK_PATH#Official ARM64 Release APK" \
+              "$CHECKSUM_PATH#SHA-256 checksum" \
+              "$CERTIFICATE_PATH#Signing certificate information" \
+              --target main \
+              --title "Alpha $RELEASE_VERSION 정식 서명 APK" \
+              --notes-file "$NOTES_PATH" \
+              --latest \
+              --repo "$GITHUB_REPOSITORY"
+          fi
+
+      - name: Remove signing key from runner
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/xianxia-release-signing.p12"
