@@ -12,6 +12,10 @@ on:
     branches: [main]
     paths:
       - ".release-trigger/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".release-trigger/**"
 
 permissions:
   contents: write
@@ -162,7 +166,7 @@ jobs:
             gh release create "$RELEASE_TAG" \
               "$APK_PATH#ARM64 debug APK" \
               "$CHECKSUM_PATH#SHA-256 checksum" \
-              --target "$GITHUB_SHA" \
+              --target main \
               --title "Alpha $RELEASE_VERSION" \
               --notes-file "$NOTES_PATH" \
               --repo "$GITHUB_REPOSITORY"
