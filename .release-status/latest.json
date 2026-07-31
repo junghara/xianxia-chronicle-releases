@@ -1,0 +1,10 @@
+{
+  "status": "success",
+  "version": "1.0.0",
+  "tag": "v1.0.0",
+  "apk": "xianxia-chronicle-alpha-1.0.0-arm64-debug.apk",
+  "source_repository": "junghara/xianxia-chronicle-AI-simulator",
+  "source_ref": "main",
+  "workflow_run_id": "30673778288",
+  "completed_at": "2026-07-31T23:47:52Z"
+}
