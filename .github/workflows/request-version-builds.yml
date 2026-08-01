@@ -83,7 +83,7 @@ jobs:
           RUN_ID: ${{ steps.runs.outputs.release_run }}
         run: gh run watch "$RUN_ID" --repo "$GITHUB_REPOSITORY" --exit-status
 
-      - name: Verify both public releases
+      - name: Verify both public Alpha releases and update-note assets
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.version }}
@@ -92,9 +92,21 @@ jobs:
           set -euo pipefail
           debug_tag="v${VERSION}-debug"
           release_tag="v${VERSION}"
+          summary="xianxia-chronicle-${VERSION}-update-summary.md"
+          details="xianxia-chronicle-${VERSION}-detailed-changelog.md"
 
-          gh release view "$debug_tag" --repo "$GITHUB_REPOSITORY" --json isPrerelease,assets \
-            --jq 'select(.isPrerelease == true) | [.assets[].name] | select(any(endswith("-debug.apk")))'
+          verify_release() {
+            local tag="$1"
+            local apk_suffix="$2"
+            local json
+            json="$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isPrerelease,name,body,assets)"
+            jq -e '.isPrerelease == true' <<< "$json" >/dev/null
+            jq -e '.name | startswith("Alpha ")' <<< "$json" >/dev/null
+            jq -e '.body | contains("업데이트 요약") and contains("상세 업데이트 내역")' <<< "$json" >/dev/null
+            jq -e --arg suffix "$apk_suffix" '[.assets[].name] | any(endswith($suffix))' <<< "$json" >/dev/null
+            jq -e --arg summary "$summary" '[.assets[].name] | index($summary) != null' <<< "$json" >/dev/null
+            jq -e --arg details "$details" '[.assets[].name] | index($details) != null' <<< "$json" >/dev/null
+          }
 
-          gh release view "$release_tag" --repo "$GITHUB_REPOSITORY" --json isPrerelease,assets \
-            --jq 'select(.isPrerelease == false) | [.assets[].name] | select(any(endswith("-release.apk")))'
+          verify_release "$debug_tag" "-debug.apk"
+          verify_release "$release_tag" "-release.apk"
