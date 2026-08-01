@@ -1,0 +1,74 @@
+name: Mark Published Releases as Alpha
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".release-trigger/metadata/**"
+  workflow_run:
+    workflows:
+      - "Build Debug Android APK"
+      - "Build Signed Release Android APK"
+    types: [completed]
+
+permissions:
+  contents: write
+
+jobs:
+  mark-alpha:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out release metadata
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Mark Debug and Release channels as Alpha prereleases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          update_release() {
+            local status_file="$1"
+            local channel="$2"
+            [[ -f "$status_file" ]] || return 0
+
+            local version tag title body notes
+            version="$(jq -r '.version' "$status_file")"
+            tag="$(jq -r '.tag' "$status_file")"
+            [[ -n "$version" && "$version" != "null" && -n "$tag" && "$tag" != "null" ]] || return 0
+            gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || return 0
+
+            if [[ "$channel" == "debug" ]]; then
+              title="Alpha $version Debug"
+            else
+              title="Alpha $version 정식 서명 Release"
+            fi
+
+            body="$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json body --jq '.body // ""')"
+            notes="$(mktemp)"
+            {
+              echo "# 선협 역사 기록서 Alpha $version"
+              echo
+              echo "> 이 릴리스는 기능 개발 중인 **알파 버전**입니다. 실행 오류, 데이터 초기화, 기능 및 밸런스 변경이 발생할 수 있습니다."
+              echo
+              if [[ -n "$body" ]] && ! grep -Fq "기능 개발 중인 **알파 버전**" <<< "$body"; then
+                printf '%s\n' "$body"
+              elif [[ -n "$body" ]]; then
+                printf '%s\n' "$body" | sed '1,/^$/d'
+              fi
+            } > "$notes"
+
+            gh release edit "$tag" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "$title" \
+              --notes-file "$notes" \
+              --prerelease
+          }
+
+          update_release ".release-status/debug-latest.json" debug
+          update_release ".release-status/release-latest.json" release
