@@ -8,29 +8,45 @@
 
 ## 최신 배포 상태
 
-- 최신 버전: **Alpha 1.0.2**
+- 최신 버전: **Alpha 1.0.3**
 - 개발 단계: **Alpha**
 - 지원 ABI: **ARM64 (`arm64-v8a`)**
 - 공개 채널: **정식 서명 Release / 개발용 Debug**
 - 상태: **빌드·검증·공개 배포 완료**
-- 주요 수정: **정식 Release UI·배속·버전 표시 복구 및 Debug/Release 기능 동등성 확보**
+- 주요 업데이트: **연기경 1층~9층·대원만 수행 체계, 오행 영근, 두 종류의 깨달음, 운명·행운 변동, 장기 수행 행동과 축기경 진입 판정**
 
 ## 다운로드
 
-### Alpha 1.0.2 정식 서명 Release
+### Alpha 1.0.3 정식 서명 Release
 
-- [Alpha 1.0.2 정식 릴리스 열기](https://github.com/junghara/xianxia-chronicle-releases/releases/tag/v1.0.2)
-- [Alpha 1.0.2 ARM64 Release APK 바로 다운로드](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.2/xianxia-chronicle-1.0.2-arm64-release.apk)
-- [Alpha 1.0.2 업데이트 요약본](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.2/xianxia-chronicle-1.0.2-update-summary.md)
-- [Alpha 1.0.2 상세 업데이트 내역](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.2/xianxia-chronicle-1.0.2-detailed-changelog.md)
+- [Alpha 1.0.3 정식 릴리스 열기](https://github.com/junghara/xianxia-chronicle-releases/releases/tag/v1.0.3)
+- [Alpha 1.0.3 ARM64 Release APK 바로 다운로드](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.3/xianxia-chronicle-1.0.3-arm64-release.apk)
+- [Alpha 1.0.3 업데이트 요약본](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.3/xianxia-chronicle-1.0.3-update-summary.md)
+- [Alpha 1.0.3 상세 업데이트 내역](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.3/xianxia-chronicle-1.0.3-detailed-changelog.md)
 
-### Alpha 1.0.2 Debug
+### Alpha 1.0.3 Debug
 
-- [Alpha 1.0.2 Debug 사전 릴리스 열기](https://github.com/junghara/xianxia-chronicle-releases/releases/tag/v1.0.2-debug)
-- [Alpha 1.0.2 ARM64 Debug APK 바로 다운로드](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.2-debug/xianxia-chronicle-1.0.2-arm64-debug.apk)
-- [Alpha 1.0.2 Debug 상세 업데이트 내역](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.2-debug/xianxia-chronicle-1.0.2-detailed-changelog.md)
+- [Alpha 1.0.3 Debug 사전 릴리스 열기](https://github.com/junghara/xianxia-chronicle-releases/releases/tag/v1.0.3-debug)
+- [Alpha 1.0.3 ARM64 Debug APK 바로 다운로드](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.3-debug/xianxia-chronicle-1.0.3-arm64-debug.apk)
+- [Alpha 1.0.3 Debug 업데이트 요약본](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.3-debug/xianxia-chronicle-1.0.3-update-summary.md)
+- [Alpha 1.0.3 Debug 상세 업데이트 내역](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.3-debug/xianxia-chronicle-1.0.3-detailed-changelog.md)
 
 일반 설치에는 **정식 서명 Release APK**를 사용하세요. Debug APK는 기능 확인과 오류 진단용입니다.
+
+## Alpha 1.0.3 주요 기능
+
+- 연기경 `1층~9층·대원만` 10단계
+- 층별 요구 수행치와 잔여 수행치 이월
+- 한 해 다층 상승과 각 층 돌파 조건의 순차 판정
+- 수행치와 돌파 깨달음을 분리한 병목
+- 금·목·수·화·토 영근별 육성도와 세부 육성도
+- 수행 자질, 가속 깨달음, 돌파 깨달음
+- 장기 운명 성향과 매년 변하는 행운
+- 3~9년 지속 장기 수행 행동
+- 연기경 대원만 이후 축기경 진입 판정
+- 인물 상세와 연기경 층별 세계 통계
+
+축기경 내부 수행 구조는 아직 구현되지 않았습니다.
 
 ## 업데이트 내역 공개 방식
 
