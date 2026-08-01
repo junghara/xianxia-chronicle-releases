@@ -1,0 +1,4 @@
+version=1.0.3
+source_ref=main
+source_commit=def5d2bd6b7c1973a85015528931aa2815ab71ee
+channel=release
