@@ -8,23 +8,27 @@
 
 ## 최신 배포 상태
 
-- 최신 버전: **Alpha 1.0.1**
+- 최신 버전: **Alpha 1.0.2**
 - 개발 단계: **Alpha**
 - 지원 ABI: **ARM64 (`arm64-v8a`)**
 - 공개 채널: **정식 서명 Release / 개발용 Debug**
 - 상태: **빌드·검증·공개 배포 완료**
+- 주요 수정: **정식 Release UI·배속·버전 표시 복구 및 Debug/Release 기능 동등성 확보**
 
 ## 다운로드
 
-### Alpha 1.0.1 정식 서명 Release
+### Alpha 1.0.2 정식 서명 Release
 
-- [Alpha 1.0.1 정식 릴리스 열기](https://github.com/junghara/xianxia-chronicle-releases/releases/tag/v1.0.1)
-- [Alpha 1.0.1 ARM64 Release APK 바로 다운로드](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.1/xianxia-chronicle-1.0.1-arm64-release.apk)
+- [Alpha 1.0.2 정식 릴리스 열기](https://github.com/junghara/xianxia-chronicle-releases/releases/tag/v1.0.2)
+- [Alpha 1.0.2 ARM64 Release APK 바로 다운로드](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.2/xianxia-chronicle-1.0.2-arm64-release.apk)
+- [Alpha 1.0.2 업데이트 요약본](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.2/xianxia-chronicle-1.0.2-update-summary.md)
+- [Alpha 1.0.2 상세 업데이트 내역](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.2/xianxia-chronicle-1.0.2-detailed-changelog.md)
 
-### Alpha 1.0.1 Debug
+### Alpha 1.0.2 Debug
 
-- [Alpha 1.0.1 Debug 사전 릴리스 열기](https://github.com/junghara/xianxia-chronicle-releases/releases/tag/v1.0.1-debug)
-- [Alpha 1.0.1 ARM64 Debug APK 바로 다운로드](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.1-debug/xianxia-chronicle-1.0.1-arm64-debug.apk)
+- [Alpha 1.0.2 Debug 사전 릴리스 열기](https://github.com/junghara/xianxia-chronicle-releases/releases/tag/v1.0.2-debug)
+- [Alpha 1.0.2 ARM64 Debug APK 바로 다운로드](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.2-debug/xianxia-chronicle-1.0.2-arm64-debug.apk)
+- [Alpha 1.0.2 Debug 상세 업데이트 내역](https://github.com/junghara/xianxia-chronicle-releases/releases/download/v1.0.2-debug/xianxia-chronicle-1.0.2-detailed-changelog.md)
 
 일반 설치에는 **정식 서명 Release APK**를 사용하세요. Debug APK는 기능 확인과 오류 진단용입니다.
 
