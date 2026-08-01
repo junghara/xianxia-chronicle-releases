@@ -1,0 +1,4 @@
+version=1.0.4
+source_repository=junghara/xianxia-chronicle-AI-simulator
+source_ref=main
+source_commit=ff808ac678c6c59973a766d1804f637dbdc277ed
