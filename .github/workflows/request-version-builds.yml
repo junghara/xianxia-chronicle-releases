@@ -1,0 +1,97 @@
+name: Request and Verify Debug and Release APKs
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".release-trigger/build-matrix/**"
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  request-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      SOURCE_REPOSITORY: junghara/xianxia-chronicle-AI-simulator
+
+    steps:
+      - name: Read current private source version
+        id: version
+        env:
+          GH_TOKEN: ${{ secrets.SOURCE_REPO_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          encoded="$(gh api "repos/$SOURCE_REPOSITORY/contents/VERSION?ref=main" --jq '.content')"
+          version="$(printf '%s' "$encoded" | base64 --decode | tr -d '\r\n')"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          IFS='.' read -r major middle update <<< "$version"
+          [[ "$middle" -le 9 && "$update" -le 9 ]]
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch Debug and signed Release builds
+        id: dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          requested_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          gh workflow run build-and-release.yml --repo "$GITHUB_REPOSITORY" --ref main -f source_ref=main
+          gh workflow run build-official-release.yml --repo "$GITHUB_REPOSITORY" --ref main -f source_ref=main
+          echo "requested_at=$requested_at" >> "$GITHUB_OUTPUT"
+
+      - name: Locate dispatched workflow runs
+        id: runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_AT: ${{ steps.dispatch.outputs.requested_at }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          find_run() {
+            local workflow="$1"
+            local run_id=""
+            for attempt in $(seq 1 40); do
+              run_id="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --event workflow_dispatch --limit 20 --json databaseId,createdAt --jq 'map(select(.createdAt >= env.REQUESTED_AT)) | sort_by(.createdAt) | last | .databaseId // empty')"
+              [[ -z "$run_id" ]] || { printf '%s' "$run_id"; return 0; }
+              sleep 5
+            done
+            return 1
+          }
+          debug_run="$(find_run build-and-release.yml)"
+          release_run="$(find_run build-official-release.yml)"
+          echo "debug_run=$debug_run" >> "$GITHUB_OUTPUT"
+          echo "release_run=$release_run" >> "$GITHUB_OUTPUT"
+
+      - name: Watch Debug build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ steps.runs.outputs.debug_run }}
+        run: gh run watch "$RUN_ID" --repo "$GITHUB_REPOSITORY" --exit-status
+
+      - name: Watch signed Release build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ steps.runs.outputs.release_run }}
+        run: gh run watch "$RUN_ID" --repo "$GITHUB_REPOSITORY" --exit-status
+
+      - name: Verify both public releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          debug_tag="v${VERSION}-debug"
+          release_tag="v${VERSION}"
+
+          gh release view "$debug_tag" --repo "$GITHUB_REPOSITORY" --json isPrerelease,assets \
+            --jq 'select(.isPrerelease == true) | [.assets[].name] | select(any(endswith("-debug.apk")))'
+
+          gh release view "$release_tag" --repo "$GITHUB_REPOSITORY" --json isPrerelease,assets \
+            --jq 'select(.isPrerelease == false) | [.assets[].name] | select(any(endswith("-release.apk")))'
