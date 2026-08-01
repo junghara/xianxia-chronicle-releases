@@ -1,0 +1,4 @@
+source_ref=main
+version=1.0.0
+requested_at=2026-08-01T09:02:00+09:00
+purpose=Dispatch and verify official signed APK release
