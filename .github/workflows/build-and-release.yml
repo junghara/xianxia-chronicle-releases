@@ -52,6 +52,32 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      - name: Validate public update notes
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d '\r\n' < VERSION)"
+          notes_dir="release-notes/$version"
+          summary="$notes_dir/SUMMARY.md"
+          details="$notes_dir/DETAILS.md"
+          [[ -s "$summary" ]] || {
+            echo "Missing public summary: $summary" >&2
+            exit 1
+          }
+          [[ -s "$details" ]] || {
+            echo "Missing detailed update file: $details" >&2
+            exit 1
+          }
+          grep -Eq '^#|^- |^[0-9]+\.' "$summary" || {
+            echo "SUMMARY.md must contain a readable heading or update list." >&2
+            exit 1
+          }
+          grep -Eq '^## ' "$details" || {
+            echo "DETAILS.md must contain categorized detail sections." >&2
+            exit 1
+          }
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -95,9 +121,17 @@ jobs:
           output_dir="debug-release-dist"
           apk_name="xianxia-chronicle-${version}-arm64-debug.apk"
           output_apk="$output_dir/$apk_name"
+          summary_source="release-notes/$version/SUMMARY.md"
+          details_source="release-notes/$version/DETAILS.md"
+          summary_name="xianxia-chronicle-${version}-update-summary.md"
+          details_name="xianxia-chronicle-${version}-detailed-changelog.md"
+          summary_path="$output_dir/$summary_name"
+          details_path="$output_dir/$details_name"
 
           mkdir -p "$output_dir"
           cp "$source_apk" "$output_apk"
+          cp "$summary_source" "$summary_path"
+          cp "$details_source" "$details_path"
 
           tools="$ANDROID_HOME/build-tools/36.0.0"
           "$tools/apksigner" verify --verbose --print-certs "$output_apk"
@@ -108,25 +142,38 @@ jobs:
           grep -F "application-debuggable" <<< "$badging"
           sha256sum "$output_apk" > "$output_apk.sha256"
 
-          cat > "$output_dir/RELEASE_NOTES.md" <<EOF
-          # 선협 역사 기록서 $version Debug
-
-          기능 확인과 오류 진단을 위한 개발용 APK입니다.
-
-          - 빌드 유형: Debug
-          - 디버그 가능: 활성화
-          - 지원 ABI: ARM64 (arm64-v8a)
-          - 버전 코드: $version_code
-          - 정식 공개 설치용이 아님
-
-          일반 설치 및 배포에는 같은 버전의 정식 Release APK를 사용하세요.
-          EOF
+          {
+            echo "# 선협 역사 기록서 Alpha $version Debug"
+            echo
+            echo "> 기능 개발 중인 **알파 버전**이며, 오류 확인과 진단을 위한 디버깅 가능 빌드입니다."
+            echo
+            echo "## 업데이트 요약"
+            echo
+            cat "$summary_source"
+            echo
+            echo "## 상세 업데이트 내역"
+            echo
+            echo "가능한 전체 변경 내역은 릴리스에 첨부된 \`$details_name\` 파일에서 확인할 수 있습니다."
+            echo
+            echo "## 빌드 정보"
+            echo
+            echo "- 빌드 유형: Debug"
+            echo "- 디버그 가능: 활성화"
+            echo "- 정식 Release와 게임 기능·UI·JNI 경로: 동일"
+            echo "- 지원 ABI: ARM64 (arm64-v8a)"
+            echo "- 버전 코드: $version_code"
+            echo "- 용도: 기능 확인과 오류 진단"
+            echo
+            echo "일반 설치 및 배포에는 같은 버전의 정식 서명 Release APK를 사용하세요."
+          } > "$output_dir/RELEASE_NOTES.md"
 
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "apk_name=$apk_name" >> "$GITHUB_OUTPUT"
           echo "apk_path=source/$output_apk" >> "$GITHUB_OUTPUT"
           echo "checksum_path=source/$output_apk.sha256" >> "$GITHUB_OUTPUT"
+          echo "summary_path=source/$summary_path" >> "$GITHUB_OUTPUT"
+          echo "details_path=source/$details_path" >> "$GITHUB_OUTPUT"
           echo "notes_path=source/$output_dir/RELEASE_NOTES.md" >> "$GITHUB_OUTPUT"
 
       - name: Upload Debug artifact
@@ -136,6 +183,8 @@ jobs:
           path: |
             ${{ steps.package.outputs.apk_path }}
             ${{ steps.package.outputs.checksum_path }}
+            ${{ steps.package.outputs.summary_path }}
+            ${{ steps.package.outputs.details_path }}
           if-no-files-found: error
           retention-days: 30
 
@@ -146,15 +195,23 @@ jobs:
           RELEASE_VERSION: ${{ steps.package.outputs.version }}
           APK_PATH: ${{ steps.package.outputs.apk_path }}
           CHECKSUM_PATH: ${{ steps.package.outputs.checksum_path }}
+          SUMMARY_PATH: ${{ steps.package.outputs.summary_path }}
+          DETAILS_PATH: ${{ steps.package.outputs.details_path }}
           NOTES_PATH: ${{ steps.package.outputs.notes_path }}
         shell: bash
         run: |
           set -euo pipefail
+          assets=(
+            "$APK_PATH#ARM64 Debug APK"
+            "$CHECKSUM_PATH#SHA-256 checksum"
+            "$SUMMARY_PATH#Update summary"
+            "$DETAILS_PATH#Detailed changelog"
+          )
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" "$APK_PATH#ARM64 Debug APK" "$CHECKSUM_PATH#SHA-256 checksum" --clobber --repo "$GITHUB_REPOSITORY"
-            gh release edit "$RELEASE_TAG" --title "$RELEASE_VERSION Debug" --notes-file "$NOTES_PATH" --prerelease --repo "$GITHUB_REPOSITORY"
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber --repo "$GITHUB_REPOSITORY"
+            gh release edit "$RELEASE_TAG" --title "Alpha $RELEASE_VERSION Debug" --notes-file "$NOTES_PATH" --prerelease --repo "$GITHUB_REPOSITORY"
           else
-            gh release create "$RELEASE_TAG" "$APK_PATH#ARM64 Debug APK" "$CHECKSUM_PATH#SHA-256 checksum" --target main --title "$RELEASE_VERSION Debug" --notes-file "$NOTES_PATH" --prerelease --repo "$GITHUB_REPOSITORY"
+            gh release create "$RELEASE_TAG" "${assets[@]}" --target main --title "Alpha $RELEASE_VERSION Debug" --notes-file "$NOTES_PATH" --prerelease --repo "$GITHUB_REPOSITORY"
           fi
 
       - name: Record Debug release status
@@ -171,7 +228,7 @@ jobs:
           completed_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           status_file="$(mktemp)"
           cat > "$status_file" <<EOF
-          {"status":"success","channel":"debug","version":"$RELEASE_VERSION","tag":"$RELEASE_TAG","apk":"$APK_NAME","source_ref":"$SOURCE_REF","workflow_run_id":"$GITHUB_RUN_ID","completed_at":"$completed_at"}
+          {"status":"success","channel":"debug","version":"$RELEASE_VERSION","tag":"$RELEASE_TAG","apk":"$APK_NAME","source_ref":"$SOURCE_REF","workflow_run_id":"$GITHUB_RUN_ID","completed_at":"$completed_at","summary":"release body and attached file","details":"attached markdown file"}
           EOF
           encoded="$(base64 -w 0 "$status_file")"
           current_sha="$(gh api "$endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
