@@ -64,8 +64,39 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/xianxia-release-signing.p12"
-          chmod 600 "$RUNNER_TEMP/xianxia-release-signing.p12"
+          python3 - <<'PY'
+          import base64
+          import os
+          import pathlib
+          import re
+
+          raw = os.environ["KEYSTORE_BASE64"].strip()
+          match = re.search(
+              r"(?:^|\n)\s*(?:export\s+)?RELEASE_KEYSTORE_BASE64\s*=\s*[\"']?([A-Za-z0-9+/=_-]+)",
+              raw,
+          )
+          if match:
+              raw = match.group(1)
+          else:
+              raw = raw.strip("\"'")
+              raw = re.sub(r"\s+", "", raw)
+
+          raw = raw.replace("-", "+").replace("_", "/")
+          raw += "=" * (-len(raw) % 4)
+          try:
+              decoded = base64.b64decode(raw, validate=True)
+          except Exception as exc:
+              raise SystemExit(
+                  "RELEASE_KEYSTORE_BASE64 is not valid Base64. Register only the value after the equals sign."
+              ) from exc
+
+          if len(decoded) < 256:
+              raise SystemExit("Decoded signing key is unexpectedly small.")
+
+          output = pathlib.Path(os.environ["RUNNER_TEMP"]) / "xianxia-release-signing.p12"
+          output.write_bytes(decoded)
+          output.chmod(0o600)
+          PY
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -161,6 +192,7 @@ jobs:
           - 서명 방식: APK Signature Scheme v2/v3
           - 원본 소스: 비공개 저장소에서 관리
 
+          GitHub에서 직접 설치하는 앱이므로 Android의 외부 출처 설치 안내는 표시될 수 있습니다.
           기존 Debug APK와 서명 인증서가 다르므로 Debug APK가 설치되어 있다면 먼저 삭제한 뒤 설치해야 합니다.
           EOF
 
