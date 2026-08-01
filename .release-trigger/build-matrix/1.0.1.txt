@@ -1,0 +1,4 @@
+version=1.0.1
+channels=debug,release
+source_ref=main
+requested_at=2026-08-01T09:12:00+09:00
