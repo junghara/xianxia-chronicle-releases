@@ -1,0 +1,76 @@
+name: Request and Verify Official APK Release
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".release-trigger/official-pr/**"
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  request-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Dispatch official release workflow
+        id: dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          requested_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          gh workflow run build-official-release.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref main \
+            -f source_ref=main
+          echo "requested_at=$requested_at" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for dispatched run
+        id: locate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_AT: ${{ steps.dispatch.outputs.requested_at }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_id=""
+          for attempt in $(seq 1 30); do
+            run_id="$(gh run list \
+              --repo "$GITHUB_REPOSITORY" \
+              --workflow build-official-release.yml \
+              --event workflow_dispatch \
+              --limit 10 \
+              --json databaseId,createdAt \
+              --jq 'map(select(.createdAt >= env.REQUESTED_AT)) | sort_by(.createdAt) | last | .databaseId // empty')"
+            if [[ -n "$run_id" ]]; then
+              break
+            fi
+            sleep 5
+          done
+          if [[ -z "$run_id" ]]; then
+            echo "Could not locate the dispatched official release run." >&2
+            exit 1
+          fi
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+
+      - name: Watch official release run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ steps.locate.outputs.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh run watch "$RUN_ID" --repo "$GITHUB_REPOSITORY" --exit-status
+
+      - name: Confirm official Release exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release view v1.0.0-official --repo "$GITHUB_REPOSITORY" --json tagName,name,assets \
+            --jq '{tag: .tagName, name: .name, assets: [.assets[].name]}'
