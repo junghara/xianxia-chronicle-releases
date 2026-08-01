@@ -53,6 +53,32 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      - name: Validate public update notes
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d '\r\n' < VERSION)"
+          notes_dir="release-notes/$version"
+          summary="$notes_dir/SUMMARY.md"
+          details="$notes_dir/DETAILS.md"
+          [[ -s "$summary" ]] || {
+            echo "Missing public summary: $summary" >&2
+            exit 1
+          }
+          [[ -s "$details" ]] || {
+            echo "Missing detailed update file: $details" >&2
+            exit 1
+          }
+          grep -Eq '^#|^- |^[0-9]+\.' "$summary" || {
+            echo "SUMMARY.md must contain a readable heading or update list." >&2
+            exit 1
+          }
+          grep -Eq '^## ' "$details" || {
+            echo "DETAILS.md must contain categorized detail sections." >&2
+            exit 1
+          }
+
       - name: Restore signing key and normalize secret values
         env:
           KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
@@ -131,7 +157,7 @@ jobs:
             --console=plain \
             --no-daemon
 
-      - name: Align, sign, and verify Release APK
+      - name: Align, sign, verify, and package Release APK
         id: package
         working-directory: source
         shell: bash
@@ -154,7 +180,15 @@ jobs:
           apk_name="xianxia-chronicle-${version}-arm64-release.apk"
           aligned_apk="$output_dir/aligned-unsigned.apk"
           output_apk="$output_dir/$apk_name"
+          summary_source="release-notes/$version/SUMMARY.md"
+          details_source="release-notes/$version/DETAILS.md"
+          summary_name="xianxia-chronicle-${version}-update-summary.md"
+          details_name="xianxia-chronicle-${version}-detailed-changelog.md"
+          summary_path="$output_dir/$summary_name"
+          details_path="$output_dir/$details_name"
           mkdir -p "$output_dir"
+          cp "$summary_source" "$summary_path"
+          cp "$details_source" "$details_path"
 
           "$tools/zipalign" -f -P 16 4 "$unsigned_apk" "$aligned_apk"
           "$tools/apksigner" sign \
@@ -183,21 +217,33 @@ jobs:
 
           sha256sum "$output_apk" > "$output_apk.sha256"
           tag="v${version}"
-          cat > "$output_dir/RELEASE_NOTES.md" <<EOF
-          # 선협 역사 기록서 $version 정식 Release
-
-          최적화되고 고정 배포 키로 서명된 Android 공개 설치용 APK입니다.
-
-          - 빌드 유형: Release
-          - 디버그 가능: 비활성화
-          - 코드 축소 및 최적화: 활성화
-          - 지원 ABI: ARM64 (arm64-v8a)
-          - Android 최소 버전: API 26
-          - 서명 방식: APK Signature Scheme v2/v3
-
-          GitHub 직접 배포이므로 Android의 외부 출처 설치 안내는 표시될 수 있습니다.
-          같은 버전의 Debug APK가 설치되어 있으면 삭제 후 설치하세요.
-          EOF
+          {
+            echo "# 선협 역사 기록서 Alpha $version 정식 서명 Release"
+            echo
+            echo "> 기능 개발 중인 **알파 버전**입니다. 실행 오류, 데이터 초기화, 기능 및 밸런스 변경이 발생할 수 있습니다."
+            echo
+            echo "## 업데이트 요약"
+            echo
+            cat "$summary_source"
+            echo
+            echo "## 상세 업데이트 내역"
+            echo
+            echo "가능한 전체 변경 내역은 릴리스에 첨부된 \`$details_name\` 파일에서 확인할 수 있습니다."
+            echo
+            echo "## 빌드 정보"
+            echo
+            echo "- 빌드 유형: Release"
+            echo "- 디버그 가능: 비활성화"
+            echo "- Debug와 게임 기능·UI·JNI 경로: 동일"
+            echo "- 네이티브 Release 최적화: 활성화"
+            echo "- Java 코드 축소·난독화: 비활성화"
+            echo "- 지원 ABI: ARM64 (arm64-v8a)"
+            echo "- Android 최소 버전: API 26"
+            echo "- 서명 방식: APK Signature Scheme v2/v3"
+            echo
+            echo "GitHub 직접 배포이므로 Android의 외부 출처 설치 안내는 표시될 수 있습니다."
+            echo "같은 버전의 Debug APK가 설치되어 있으면 삭제 후 설치하세요."
+          } > "$output_dir/RELEASE_NOTES.md"
 
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
@@ -205,6 +251,8 @@ jobs:
           echo "apk_path=source/$output_apk" >> "$GITHUB_OUTPUT"
           echo "checksum_path=source/$output_apk.sha256" >> "$GITHUB_OUTPUT"
           echo "certificate_path=source/$output_dir/signing-certificate.txt" >> "$GITHUB_OUTPUT"
+          echo "summary_path=source/$summary_path" >> "$GITHUB_OUTPUT"
+          echo "details_path=source/$details_path" >> "$GITHUB_OUTPUT"
           echo "notes_path=source/$output_dir/RELEASE_NOTES.md" >> "$GITHUB_OUTPUT"
 
       - name: Upload signed Release artifact
@@ -215,6 +263,8 @@ jobs:
             ${{ steps.package.outputs.apk_path }}
             ${{ steps.package.outputs.checksum_path }}
             ${{ steps.package.outputs.certificate_path }}
+            ${{ steps.package.outputs.summary_path }}
+            ${{ steps.package.outputs.details_path }}
           if-no-files-found: error
           retention-days: 90
 
@@ -226,15 +276,24 @@ jobs:
           APK_PATH: ${{ steps.package.outputs.apk_path }}
           CHECKSUM_PATH: ${{ steps.package.outputs.checksum_path }}
           CERTIFICATE_PATH: ${{ steps.package.outputs.certificate_path }}
+          SUMMARY_PATH: ${{ steps.package.outputs.summary_path }}
+          DETAILS_PATH: ${{ steps.package.outputs.details_path }}
           NOTES_PATH: ${{ steps.package.outputs.notes_path }}
         shell: bash
         run: |
           set -euo pipefail
+          assets=(
+            "$APK_PATH#Signed ARM64 Release APK"
+            "$CHECKSUM_PATH#SHA-256 checksum"
+            "$CERTIFICATE_PATH#Signing certificate information"
+            "$SUMMARY_PATH#Update summary"
+            "$DETAILS_PATH#Detailed changelog"
+          )
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" "$APK_PATH#Signed ARM64 Release APK" "$CHECKSUM_PATH#SHA-256 checksum" "$CERTIFICATE_PATH#Signing certificate information" --clobber --repo "$GITHUB_REPOSITORY"
-            gh release edit "$RELEASE_TAG" --title "$RELEASE_VERSION 정식 Release" --notes-file "$NOTES_PATH" --latest --repo "$GITHUB_REPOSITORY"
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber --repo "$GITHUB_REPOSITORY"
+            gh release edit "$RELEASE_TAG" --title "Alpha $RELEASE_VERSION 정식 서명 Release" --notes-file "$NOTES_PATH" --prerelease --repo "$GITHUB_REPOSITORY"
           else
-            gh release create "$RELEASE_TAG" "$APK_PATH#Signed ARM64 Release APK" "$CHECKSUM_PATH#SHA-256 checksum" "$CERTIFICATE_PATH#Signing certificate information" --target main --title "$RELEASE_VERSION 정식 Release" --notes-file "$NOTES_PATH" --latest --repo "$GITHUB_REPOSITORY"
+            gh release create "$RELEASE_TAG" "${assets[@]}" --target main --title "Alpha $RELEASE_VERSION 정식 서명 Release" --notes-file "$NOTES_PATH" --prerelease --repo "$GITHUB_REPOSITORY"
           fi
 
       - name: Record Release status
@@ -251,7 +310,7 @@ jobs:
           completed_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           status_file="$(mktemp)"
           cat > "$status_file" <<EOF
-          {"status":"success","channel":"release","version":"$RELEASE_VERSION","tag":"$RELEASE_TAG","apk":"$APK_NAME","source_ref":"$SOURCE_REF","workflow_run_id":"$GITHUB_RUN_ID","completed_at":"$completed_at"}
+          {"status":"success","channel":"release","version":"$RELEASE_VERSION","tag":"$RELEASE_TAG","apk":"$APK_NAME","source_ref":"$SOURCE_REF","workflow_run_id":"$GITHUB_RUN_ID","completed_at":"$completed_at","summary":"release body and attached file","details":"attached markdown file"}
           EOF
           encoded="$(base64 -w 0 "$status_file")"
           current_sha="$(gh api "$endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
