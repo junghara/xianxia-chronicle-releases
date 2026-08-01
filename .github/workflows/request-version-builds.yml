@@ -1,7 +1,7 @@
 name: Request and Verify Debug and Release APKs
 
 on:
-  pull_request_target:
+  pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
@@ -15,19 +15,22 @@ jobs:
   request-and-verify:
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    env:
-      SOURCE_REPOSITORY: junghara/xianxia-chronicle-AI-simulator
 
     steps:
-      - name: Read current private source version
+      - name: Check out build request
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Read requested version
         id: version
-        env:
-          GH_TOKEN: ${{ secrets.SOURCE_REPO_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
-          encoded="$(gh api "repos/$SOURCE_REPOSITORY/contents/VERSION?ref=main" --jq '.content')"
-          version="$(printf '%s' "$encoded" | base64 --decode | tr -d '\r\n')"
+          request_file="$(find .release-trigger/build-matrix -maxdepth 1 -type f -name '*.txt' | sort | tail -n 1)"
+          [[ -n "$request_file" && -f "$request_file" ]]
+          version="$(sed -n 's/^version=//p' "$request_file" | tail -n 1 | tr -d '\r\n')"
           [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           IFS='.' read -r major middle update <<< "$version"
           [[ "$middle" -le 9 && "$update" -le 9 ]]
