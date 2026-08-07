@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       source_ref:
-        description: Private source branch, tag, or commit
+        description: Pinned private source commit SHA
         required: true
-        default: main
+        default: 4af8b27becaf940dad911071ff56a9c36f66e1c6
         type: string
   push:
     branches: [main]
@@ -26,7 +26,7 @@ jobs:
     timeout-minutes: 40
     env:
       SOURCE_REPOSITORY: junghara/xianxia-chronicle-AI-simulator
-      SOURCE_REF: ${{ inputs.source_ref || 'main' }}
+      SOURCE_REF: ${{ inputs.source_ref || '4af8b27becaf940dad911071ff56a9c36f66e1c6' }}
 
     steps:
       - name: Verify required secrets
@@ -52,6 +52,21 @@ jobs:
           path: source
           fetch-depth: 1
           persist-credentials: false
+
+      - name: Verify pinned private source
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_REF" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "SOURCE_REF must be a full 40-character commit SHA" >&2
+            exit 1
+          }
+          actual="$(git rev-parse HEAD)"
+          [[ "$actual" == "$SOURCE_REF" ]] || {
+            echo "Pinned source mismatch: expected=$SOURCE_REF actual=$actual" >&2
+            exit 1
+          }
 
       - name: Validate public update notes
         working-directory: source
@@ -234,7 +249,7 @@ jobs:
             echo
             echo "- 빌드 유형: Release"
             echo "- 디버그 가능: 비활성화"
-            echo "- Debug와 게임 기능·UI·JNI 경로: 동일"
+            echo "- 비공개 CI 전체 회귀·Release 실행 게이트: 통과"
             echo "- 네이티브 Release 최적화: 활성화"
             echo "- Java 코드 축소·난독화: 비활성화"
             echo "- 지원 ABI: ARM64 (arm64-v8a)"
@@ -242,7 +257,7 @@ jobs:
             echo "- 서명 방식: APK Signature Scheme v2/v3"
             echo
             echo "GitHub 직접 배포이므로 Android의 외부 출처 설치 안내는 표시될 수 있습니다."
-            echo "같은 버전의 Debug APK가 설치되어 있으면 삭제 후 설치하세요."
+            echo "다른 서명 채널의 APK가 설치되어 있으면 삭제 후 설치하세요."
           } > "$output_dir/RELEASE_NOTES.md"
 
           echo "version=$version" >> "$GITHUB_OUTPUT"
