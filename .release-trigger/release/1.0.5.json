@@ -1,0 +1,9 @@
+{
+  "version": "1.0.5",
+  "channel": "release",
+  "source_ref": "4af8b27becaf940dad911071ff56a9c36f66e1c6",
+  "source_ci_run_id": 31176743114,
+  "source_ci_run_number": 180,
+  "requested_at": "2026-08-07T12:14:14Z",
+  "debug_release": false
+}
