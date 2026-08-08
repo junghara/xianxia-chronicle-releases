@@ -1,0 +1,161 @@
+name: Validate Private Source Candidate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.validation-trigger/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-private-source-candidate
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      source_ref: ${{ steps.trigger.outputs.source_ref }}
+      version: ${{ steps.trigger.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: trigger
+        name: Read validation request
+        shell: bash
+        run: |
+          set -euo pipefail
+          trigger="$(git diff-tree --no-commit-id --name-only -r "$GITHUB_SHA" \
+            | grep '^.validation-trigger/.*\.json$' | head -n 1)"
+          test -n "$trigger"
+          source_ref="$(jq -r '.source_ref' "$trigger")"
+          version="$(jq -r '.version' "$trigger")"
+          [[ "$source_ref" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          echo "source_ref=$source_ref" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  host:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact private source commit
+        uses: actions/checkout@v4
+        with:
+          repository: junghara/xianxia-chronicle-AI-simulator
+          ref: ${{ needs.prepare.outputs.source_ref }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+      - name: Verify pinned source and version
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ needs.prepare.outputs.source_ref }}"
+          test "$(tr -d '\r\n' < VERSION)" = "${{ needs.prepare.outputs.version }}"
+      - name: Configure Release host build
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build Release host targets
+        run: cmake --build build -j2
+      - name: Run complete host regression suite
+        run: ctest --test-dir build --output-on-failure
+      - name: Run performance baselines and gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./build/performance_baseline | tee build/i0-baseline.txt
+          ./build/alpha_1_0_5_benchmarks | tee build/i7-benchmarks.txt
+          python3 tests/i7_benchmark_contract.py \
+            build/i7-benchmarks.txt \
+            build/i0-baseline.txt \
+            tests/fixtures/alpha-1.0.5-b0-b7-v1.tsv
+      - name: Run Alpha 1.0.6 structural contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/architecture_contract.py
+          python3 tests/i8_release_candidate_contract.py
+          python3 tests/android_startup_contract.py
+          python3 tests/alpha_106_cleanup_contract.py
+          python3 tests/release_runtime_parity_contract.py
+
+  sanitizers:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact private source commit
+        uses: actions/checkout@v4
+        with:
+          repository: junghara/xianxia-chronicle-AI-simulator
+          ref: ${{ needs.prepare.outputs.source_ref }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+      - name: Configure ASan and UBSan
+        run: >-
+          cmake -S . -B build-sanitized -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
+          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+      - name: Build sanitizer targets
+        run: cmake --build build-sanitized -j2
+      - name: Run complete sanitizer suite
+        env:
+          ASAN_OPTIONS: detect_leaks=1
+          UBSAN_OPTIONS: print_stacktrace=1
+        run: ctest --test-dir build-sanitized --output-on-failure
+
+  android:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact private source commit
+        uses: actions/checkout@v4
+        with:
+          repository: junghara/xianxia-chronicle-AI-simulator
+          ref: ${{ needs.prepare.outputs.source_ref }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK and NDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;3.22.1"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build ARM64 Debug and Release APKs
+        run: >-
+          ./gradlew :app:assembleDebug :app:assembleRelease
+          -PxianxiaAbi=arm64-v8a --stacktrace --console=plain
+      - name: Verify ARM64 APK contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${{ needs.prepare.outputs.version }}"
+          IFS='.' read -r major minor patch <<< "$version"
+          version_code=$((major * 1000000 + minor * 1000 + patch))
+          debug_apk="app/build/outputs/apk/debug/app-debug.apk"
+          release_apk="app/build/outputs/apk/release/app-release-unsigned.apk"
+          tools="$ANDROID_HOME/build-tools/36.0.0"
+          "$tools/apksigner" verify --verbose "$debug_apk"
+          debug_badging="$($tools/aapt dump badging "$debug_apk")"
+          release_badging="$($tools/aapt dump badging "$release_apk")"
+          for badging in "$debug_badging" "$release_badging"; do
+            grep -F "versionCode='$version_code'" <<< "$badging"
+            grep -F "versionName='$version'" <<< "$badging"
+            grep -F "native-code: 'arm64-v8a'" <<< "$badging"
+          done
+          grep -F "application-debuggable" <<< "$debug_badging"
+          ! grep -Fq "application-debuggable" <<< "$release_badging"
+      - name: Build x86_64 Debug and Release APKs
+        run: >-
+          ./gradlew :app:assembleDebug :app:assembleRelease
+          -PxianxiaAbi=x86_64 --stacktrace --console=plain
+      - name: Verify x86_64 native ABI
+        shell: bash
+        run: |
+          set -euo pipefail
+          tools="$ANDROID_HOME/build-tools/36.0.0"
+          for apk in app/build/outputs/apk/debug/app-debug.apk \
+                     app/build/outputs/apk/release/app-release-unsigned.apk; do
+            badging="$($tools/aapt dump badging "$apk")"
+            grep -F "native-code: 'x86_64'" <<< "$badging"
+          done
