@@ -1,0 +1,4 @@
+version=1.0.5
+channels=debug,release
+requested_at=2026-08-08T07:40:57Z
+reason=Keep the signed Release channel as latest while preserving Alpha metadata
