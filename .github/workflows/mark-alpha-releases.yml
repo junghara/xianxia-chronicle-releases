@@ -25,7 +25,7 @@ jobs:
         with:
           ref: main
 
-      - name: Mark Debug and Release channels as Alpha prereleases
+      - name: Apply Alpha metadata to Debug and Release channels
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -63,11 +63,16 @@ jobs:
               fi
             } > "$notes"
 
+            local -a release_flags=(--prerelease)
+            if [[ "$channel" == "release" ]]; then
+              release_flags=(--prerelease=false --latest)
+            fi
+
             gh release edit "$tag" \
               --repo "$GITHUB_REPOSITORY" \
               --title "$title" \
               --notes-file "$notes" \
-              --prerelease
+              "${release_flags[@]}"
           }
 
           update_release ".release-status/debug-latest.json" debug
