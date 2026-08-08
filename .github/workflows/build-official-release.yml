@@ -6,7 +6,6 @@ on:
       source_ref:
         description: Pinned private source commit SHA
         required: true
-        default: 4af8b27becaf940dad911071ff56a9c36f66e1c6
         type: string
   push:
     branches: [main]
@@ -26,9 +25,46 @@ jobs:
     timeout-minutes: 40
     env:
       SOURCE_REPOSITORY: junghara/xianxia-chronicle-AI-simulator
-      SOURCE_REF: ${{ inputs.source_ref || '4af8b27becaf940dad911071ff56a9c36f66e1c6' }}
 
     steps:
+      - name: Check out Release control
+        uses: actions/checkout@v4
+        with:
+          path: release-control
+          fetch-depth: 1
+
+      - name: Resolve pinned private source
+        id: source
+        env:
+          DISPATCH_SOURCE_REF: ${{ inputs.source_ref || '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_ref="$DISPATCH_SOURCE_REF"
+          if [[ -z "$source_ref" ]]; then
+            mapfile -t trigger_paths < <(
+              jq -r '[(.head_commit.added // [])[], (.head_commit.modified // [])[]]
+                | map(select(startswith(".release-trigger/release/") and endswith(".json")))
+                | unique[]' "$GITHUB_EVENT_PATH"
+            )
+            if [[ "${#trigger_paths[@]}" -ne 1 ]]; then
+              echo "Push builds require exactly one changed Release trigger JSON." >&2
+              exit 1
+            fi
+            trigger_path="release-control/${trigger_paths[0]}"
+            [[ -f "$trigger_path" ]] || {
+              echo "Missing Release trigger: $trigger_path" >&2
+              exit 1
+            }
+            source_ref="$(jq -er '.source_ref' "$trigger_path")"
+          fi
+          [[ "$source_ref" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "source_ref must be a full 40-character commit SHA" >&2
+            exit 1
+          }
+          echo "SOURCE_REF=$source_ref" >> "$GITHUB_ENV"
+          echo "source_ref=$source_ref" >> "$GITHUB_OUTPUT"
+
       - name: Verify required secrets
         env:
           SOURCE_TOKEN: ${{ secrets.SOURCE_REPO_TOKEN }}
