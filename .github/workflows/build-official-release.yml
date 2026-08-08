@@ -7,6 +7,10 @@ on:
         description: Pinned private source commit SHA
         required: true
         type: string
+      release_id:
+        description: Optional public release ID such as 1.0.5-r2
+        required: false
+        type: string
   push:
     branches: [main]
     paths:
@@ -37,10 +41,12 @@ jobs:
         id: source
         env:
           DISPATCH_SOURCE_REF: ${{ inputs.source_ref || '' }}
+          DISPATCH_RELEASE_ID: ${{ inputs.release_id || '' }}
         shell: bash
         run: |
           set -euo pipefail
           source_ref="$DISPATCH_SOURCE_REF"
+          release_id="$DISPATCH_RELEASE_ID"
           if [[ -z "$source_ref" ]]; then
             mapfile -t trigger_paths < <(
               jq -r '[(.head_commit.added // [])[], (.head_commit.modified // [])[]]
@@ -57,13 +63,21 @@ jobs:
               exit 1
             }
             source_ref="$(jq -er '.source_ref' "$trigger_path")"
+            release_id="$(jq -er '.release_id // .version' "$trigger_path")"
           fi
           [[ "$source_ref" =~ ^[0-9a-f]{40}$ ]] || {
             echo "source_ref must be a full 40-character commit SHA" >&2
             exit 1
           }
+          if [[ -n "$release_id" ]] &&
+             [[ ! "$release_id" =~ ^[0-9]+\\.[0-9]+\\.[0-9]+(-r[1-9][0-9]*)?$ ]]; then
+            echo "release_id must be x.y.z or x.y.z-rN" >&2
+            exit 1
+          fi
           echo "SOURCE_REF=$source_ref" >> "$GITHUB_ENV"
+          echo "RELEASE_ID=$release_id" >> "$GITHUB_ENV"
           echo "source_ref=$source_ref" >> "$GITHUB_OUTPUT"
+          echo "release_id=$release_id" >> "$GITHUB_OUTPUT"
 
       - name: Verify required secrets
         env:
@@ -219,6 +233,13 @@ jobs:
           IFS='.' read -r major middle update <<< "$version"
           [[ "$middle" -le 9 && "$update" -le 9 ]]
           version_code=$((major * 1000000 + middle * 1000 + update))
+          release_id="${RELEASE_ID:-$version}"
+          escaped_version="${version//./\\.}"
+          if [[ "$release_id" != "$version" ]] &&
+             [[ ! "$release_id" =~ ^${escaped_version}-r[1-9][0-9]*$ ]]; then
+            echo "release_id must equal VERSION or append -rN to it" >&2
+            exit 1
+          fi
 
           unsigned_apk="app/build/outputs/apk/release/app-release-unsigned.apk"
           if [[ ! -f "$unsigned_apk" ]]; then
@@ -228,13 +249,13 @@ jobs:
 
           tools="$ANDROID_HOME/build-tools/36.0.0"
           output_dir="release-dist"
-          apk_name="xianxia-chronicle-${version}-arm64-release.apk"
+          apk_name="xianxia-chronicle-${release_id}-arm64-release.apk"
           aligned_apk="$output_dir/aligned-unsigned.apk"
           output_apk="$output_dir/$apk_name"
           summary_source="release-notes/$version/SUMMARY.md"
           details_source="release-notes/$version/DETAILS.md"
-          summary_name="xianxia-chronicle-${version}-update-summary.md"
-          details_name="xianxia-chronicle-${version}-detailed-changelog.md"
+          summary_name="xianxia-chronicle-${release_id}-update-summary.md"
+          details_name="xianxia-chronicle-${release_id}-detailed-changelog.md"
           summary_path="$output_dir/$summary_name"
           details_path="$output_dir/$details_name"
           mkdir -p "$output_dir"
@@ -267,9 +288,9 @@ jobs:
           fi
 
           sha256sum "$output_apk" > "$output_apk.sha256"
-          tag="v${version}"
+          tag="v${release_id}"
           {
-            echo "# 선협 역사 기록서 Alpha $version 정식 서명 Release"
+            echo "# 선협 역사 기록서 Alpha $release_id 정식 서명 Release"
             echo
             echo "> 기능 개발 중인 **알파 버전**입니다. 실행 오류, 데이터 초기화, 기능 및 밸런스 변경이 발생할 수 있습니다."
             echo
@@ -283,6 +304,8 @@ jobs:
             echo
             echo "## 빌드 정보"
             echo
+            echo "- 공개 릴리스 식별자: $release_id"
+            echo "- APK 내부 버전: $version"
             echo "- 빌드 유형: Release"
             echo "- 디버그 가능: 비활성화"
             echo "- 비공개 CI 전체 회귀·Release 실행 게이트: 통과"
@@ -296,7 +319,7 @@ jobs:
             echo "다른 서명 채널의 APK가 설치되어 있으면 삭제 후 설치하세요."
           } > "$output_dir/RELEASE_NOTES.md"
 
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "version=$release_id" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "apk_name=$apk_name" >> "$GITHUB_OUTPUT"
           echo "apk_path=source/$output_apk" >> "$GITHUB_OUTPUT"
