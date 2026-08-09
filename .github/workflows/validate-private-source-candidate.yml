@@ -65,6 +65,10 @@ jobs:
         run: |
           set -euo pipefail
           ./build/performance_baseline | tee build/i0-baseline.txt
+          if [[ -x ./build/alpha_108_observer_performance ]]; then
+            ./build/alpha_108_observer_performance |
+              tee build/alpha-1.0.8-observer-performance.txt
+          fi
           ./build/storage_workflow_latency_micro |
             tee build/storage-workflow-latency.txt
           ./build/alpha_1_0_5_benchmarks | tee build/i7-benchmarks.txt
@@ -73,7 +77,7 @@ jobs:
             build/i0-baseline.txt \
             tests/fixtures/current-b0-b7-v1.tsv \
             build/storage-workflow-latency.txt
-      - name: Run Alpha 1.0.6 structural contracts
+      - name: Run inherited and Alpha 1.0.8 structural contracts
         shell: bash
         run: |
           set -euo pipefail
