@@ -326,21 +326,21 @@ jobs:
           sleep 2
           adb shell input tap 180 470
           sleep 2
-          adb shell input swipe 180 520 180 260 600
+          adb shell input swipe 180 540 180 240 8000
           sleep 3
           capture_screen \
             validation-artifacts/agent-overview-selected-enlarged-dark.png
 
           for entry in \
-            "cultivation:113:290" "traits:180:290" \
-            "ai:247:290" "records:314:290"; do
+            "cultivation:113:300" "traits:180:300" \
+            "ai:247:300" "records:314:300"; do
             name="${entry%%:*}"
             coordinates="${entry#*:}"
             tab_x="${coordinates%%:*}"
             tab_y="${coordinates##*:}"
             adb shell input tap "$tab_x" "$tab_y"
             sleep 2
-            adb shell input swipe 180 520 180 260 600
+            adb shell input swipe 180 540 180 240 8000
             sleep 3
             capture_screen \
               "validation-artifacts/agent-$name-selected-enlarged-dark.png"
