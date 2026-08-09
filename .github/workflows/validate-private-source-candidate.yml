@@ -314,12 +314,17 @@ jobs:
           capture_screen validation-artifacts/agents-scrolled-enlarged-dark.png
           cp validation-artifacts/agents-scrolled-enlarged-dark.png \
             validation-artifacts/agent-overview-enlarged-dark.png
-          tab_y=266
-          for entry in "cultivation:113" "traits:180" "ai:247" "records:314"; do
+          for entry in \
+            "cultivation:113:266" "traits:180:266" \
+            "ai:247:266" "records:314:330"; do
             name="${entry%%:*}"
-            tab_x="${entry##*:}"
+            coordinates="${entry#*:}"
+            tab_x="${coordinates%%:*}"
+            tab_y="${coordinates##*:}"
             adb shell input tap "$tab_x" "$tab_y"
             sleep 2
+            capture_screen \
+              "validation-artifacts/agent-$name-selected-enlarged-dark.png"
             adb shell input swipe 180 500 180 240 600
             sleep 2
             capture_screen "validation-artifacts/agent-$name-enlarged-dark.png"
