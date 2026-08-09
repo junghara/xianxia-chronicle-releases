@@ -340,28 +340,10 @@ jobs:
             tab_y="${coordinates##*:}"
             adb shell input tap "$tab_x" "$tab_y"
             sleep 2
+            adb shell input swipe 180 520 180 260 600
+            sleep 3
             capture_screen \
               "validation-artifacts/agent-$name-selected-enlarged-dark.png"
-          done
-
-          for entry in \
-            "overview:46:290" "cultivation:113:290" \
-            "traits:180:290" "ai:247:290" "records:314:290"; do
-            name="${entry%%:*}"
-            coordinates="${entry#*:}"
-            tab_x="${coordinates%%:*}"
-            tab_y="${coordinates##*:}"
-            adb shell input tap "$tab_x" "$tab_y"
-            sleep 2
-            adb shell input swipe 180 500 180 240 600
-            sleep 2
-            capture_screen "validation-artifacts/agent-$name-enlarged-dark.png"
-            for _ in 1 2 3; do
-              adb shell input swipe 180 240 180 520 300
-              sleep 1
-            done
-            adb shell input swipe 180 520 180 260 600
-            sleep 2
           done
 
           adb shell input tap 324 "$tap_y"
