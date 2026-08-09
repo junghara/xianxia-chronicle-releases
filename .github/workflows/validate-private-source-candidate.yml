@@ -414,3 +414,58 @@ jobs:
           path: validation-artifacts
           if-no-files-found: error
           retention-days: 90
+  record:
+    name: record-validation-status
+    if: ${{ always() }}
+    needs:
+      - prepare
+      - host
+      - sanitizers
+      - android
+      - android-release-launch-smoke
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SOURCE_REF: ${{ needs.prepare.outputs.source_ref }}
+      VERSION: ${{ needs.prepare.outputs.version }}
+      PREPARE_RESULT: ${{ needs.prepare.result }}
+      HOST_RESULT: ${{ needs.host.result }}
+      SANITIZERS_RESULT: ${{ needs.sanitizers.result }}
+      ANDROID_RESULT: ${{ needs.android.result }}
+      RELEASE_SMOKE_RESULT: ${{ needs.android-release-launch-smoke.result }}
+    steps:
+      - name: Record pinned-source validation status
+        shell: bash
+        run: |
+          set -euo pipefail
+          status=success
+          for result in \
+            "$PREPARE_RESULT" "$HOST_RESULT" "$SANITIZERS_RESULT" \
+            "$ANDROID_RESULT" "$RELEASE_SMOKE_RESULT"; do
+            if [[ "$result" != "success" ]]; then
+              status=failure
+            fi
+          done
+          completed_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          payload="$(jq -nc \
+            --arg status "$status" \
+            --arg version "$VERSION" \
+            --arg source_ref "$SOURCE_REF" \
+            --arg prepare "$PREPARE_RESULT" \
+            --arg host "$HOST_RESULT" \
+            --arg sanitizers "$SANITIZERS_RESULT" \
+            --arg android "$ANDROID_RESULT" \
+            --arg release_smoke "$RELEASE_SMOKE_RESULT" \
+            --arg run_id "$GITHUB_RUN_ID" \
+            --arg completed_at "$completed_at" \
+            '{status:$status,version:$version,source_ref:$source_ref,workflow_run_id:$run_id,completed_at:$completed_at,jobs:{prepare:$prepare,host:$host,sanitizers:$sanitizers,android:$android,release_smoke:$release_smoke}}')"
+          status_path=".validation-status/latest.json"
+          endpoint="repos/$GITHUB_REPOSITORY/contents/$status_path"
+          encoded="$(printf '%s\n' "$payload" | base64 -w 0)"
+          current_sha="$(gh api "$endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          args=(--method PUT "$endpoint" -f message="Record source validation $VERSION" -f content="$encoded" -f branch=main)
+          [[ -z "$current_sha" ]] || args+=(-f sha="$current_sha")
+          gh api "${args[@]}" >/dev/null
+          [[ "$status" == "success" ]]
