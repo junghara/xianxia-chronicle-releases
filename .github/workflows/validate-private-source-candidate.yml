@@ -434,7 +434,7 @@ jobs:
       HOST_RESULT: ${{ needs.host.result }}
       SANITIZERS_RESULT: ${{ needs.sanitizers.result }}
       ANDROID_RESULT: ${{ needs.android.result }}
-      RELEASE_SMOKE_RESULT: ${{ needs.android-release-launch-smoke.result }}
+      RELEASE_SMOKE_RESULT: ${{ needs['android-release-launch-smoke'].result }}
     steps:
       - name: Record pinned-source validation status
         shell: bash
