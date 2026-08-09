@@ -219,7 +219,7 @@ jobs:
       - name: Prepare emulator evidence script
         shell: bash
         run: |
-          cat > "$RUNNER_TEMP/alpha-1.0.6-emulator-evidence.sh" <<'SCRIPT'
+          cat > "$RUNNER_TEMP/alpha-1.0.8-emulator-evidence.sh" <<'SCRIPT'
           #!/usr/bin/env bash
           set -euo pipefail
           mkdir -p validation-artifacts
@@ -242,8 +242,8 @@ jobs:
           }
           capture_screen() {
             local output="$1"
-            local remote=/sdcard/alpha106-active-window.xml
-            local active="$RUNNER_TEMP/alpha106-active-window.xml"
+            local remote=/sdcard/alpha108-active-window.xml
+            local active="$RUNNER_TEMP/alpha108-active-window.xml"
             test -n "$(adb shell pidof com.junghara.xianxiachronicle | tr -d '\r')"
             adb shell dumpsys activity activities \
               | grep -E 'mResumedActivity|topResumedActivity' \
@@ -264,8 +264,8 @@ jobs:
           }
           tap_dialog_button() {
             local text="$1"
-            local remote=/sdcard/alpha106-dialog.xml
-            local active="$RUNNER_TEMP/alpha106-dialog.xml"
+            local remote=/sdcard/alpha108-dialog.xml
+            local active="$RUNNER_TEMP/alpha108-dialog.xml"
             local button_x
             local button_y
             adb shell uiautomator dump "$remote" >/dev/null
@@ -316,7 +316,8 @@ jobs:
           done
           adb shell input tap 180 "$tap_y"
           sleep 2
-          adb shell input tap 180 277
+          # Alpha 1.0.8 adds a two-line hub introduction above the search CTA.
+          adb shell input tap 180 319
           sleep 2
           adb shell uiautomator dump /sdcard/search-dialog.xml
           adb pull /sdcard/search-dialog.xml validation-artifacts/search-dialog.xml
@@ -399,7 +400,7 @@ jobs:
           adb shell dumpsys activity activities | grep -E "mResumedActivity|topResumedActivity" | grep com.junghara.xianxiachronicle
           ! adb logcat -d | grep -E "FATAL EXCEPTION|Fatal signal|UnsatisfiedLinkError" | grep com.junghara.xianxiachronicle
           SCRIPT
-          chmod +x "$RUNNER_TEMP/alpha-1.0.6-emulator-evidence.sh"
+          chmod +x "$RUNNER_TEMP/alpha-1.0.8-emulator-evidence.sh"
       - name: Boot emulator and capture Release UI evidence
         uses: ReactiveCircus/android-emulator-runner@v2.38.0
         with:
@@ -408,12 +409,12 @@ jobs:
           target: google_apis
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: bash "$RUNNER_TEMP/alpha-1.0.6-emulator-evidence.sh"
+          script: bash "$RUNNER_TEMP/alpha-1.0.8-emulator-evidence.sh"
       - name: Upload emulator screen evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: alpha-1.0.6-emulator-screens-${{ needs.prepare.outputs.source_ref }}
+          name: alpha-1.0.8-emulator-screens-${{ needs.prepare.outputs.source_ref }}
           path: validation-artifacts
           if-no-files-found: error
           retention-days: 90
