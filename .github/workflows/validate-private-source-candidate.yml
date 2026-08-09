@@ -259,6 +259,19 @@ jobs:
             adb exec-out screencap -p > "$output"
             test -s "$output"
           }
+          tap_dialog_button() {
+            local text="$1"
+            local remote=/sdcard/alpha106-dialog.xml
+            local active="$RUNNER_TEMP/alpha106-dialog.xml"
+            local button_x
+            local button_y
+            adb shell uiautomator dump "$remote" >/dev/null
+            adb exec-out cat "$remote" > "$active"
+            read -r button_x button_y < <(
+              python3 -c 'import re, sys, xml.etree.ElementTree as ET; root = ET.parse(sys.argv[1]).getroot(); node = next(node for node in root.iter("node") if node.get("text") == sys.argv[2] and node.get("clickable") == "true"); x1, y1, x2, y2 = map(int, re.findall(r"\d+", node.get("bounds"))); print((x1 + x2) // 2, (y1 + y2) // 2)' "$active" "$text"
+            )
+            adb shell input tap "$button_x" "$button_y"
+          }
           trap cleanup EXIT
           adb shell settings put global hide_error_dialogs 1
           for launcher in com.google.android.apps.nexuslauncher com.android.launcher3; do
@@ -299,6 +312,53 @@ jobs:
           adb shell input swipe 180 500 180 240 600
           sleep 3
           capture_screen validation-artifacts/agents-scrolled-enlarged-dark.png
+          cp validation-artifacts/agents-scrolled-enlarged-dark.png \
+            validation-artifacts/agent-overview-enlarged-dark.png
+          tab_y=266
+          for entry in "cultivation:113" "traits:180" "ai:247" "records:314"; do
+            name="${entry%%:*}"
+            tab_x="${entry##*:}"
+            adb shell input tap "$tab_x" "$tab_y"
+            sleep 2
+            adb shell input swipe 180 500 180 240 600
+            sleep 2
+            capture_screen "validation-artifacts/agent-$name-enlarged-dark.png"
+          done
+
+          adb shell input tap 324 "$tap_y"
+          sleep 2
+          for _ in 1 2 3 4 5 6; do
+            adb shell input swipe 180 500 180 180 250
+            sleep 1
+          done
+          capture_screen validation-artifacts/settings-reset-enlarged-dark.png
+          adb shell input tap 180 446
+          sleep 2
+          adb shell uiautomator dump /sdcard/reset-cancel-dialog.xml >/dev/null
+          adb pull /sdcard/reset-cancel-dialog.xml \
+            validation-artifacts/reset-cancel-dialog.xml >/dev/null
+          grep -F 'text="새 세계 시작"' \
+            validation-artifacts/reset-cancel-dialog.xml
+          grep -F 'text="취소"' validation-artifacts/reset-cancel-dialog.xml
+          capture_screen validation-artifacts/reset-cancel-dialog-enlarged-dark.png
+          tap_dialog_button "취소"
+          sleep 2
+          capture_screen validation-artifacts/settings-after-reset-cancel-enlarged-dark.png
+
+          adb shell input tap 180 446
+          sleep 2
+          adb shell uiautomator dump /sdcard/reset-confirm-dialog.xml >/dev/null
+          adb pull /sdcard/reset-confirm-dialog.xml \
+            validation-artifacts/reset-confirm-dialog.xml >/dev/null
+          grep -F 'text="새 세계 시작"' \
+            validation-artifacts/reset-confirm-dialog.xml
+          capture_screen validation-artifacts/reset-confirm-dialog-enlarged-dark.png
+          tap_dialog_button "새 세계 시작"
+          sleep 6
+          adb shell input tap 36 "$tap_y"
+          sleep 2
+          capture_screen validation-artifacts/world-after-reset-enlarged-dark.png
+
           adb shell settings put system font_scale 1.0
           adb shell cmd uimode night no
           adb shell am force-stop com.junghara.xianxiachronicle
