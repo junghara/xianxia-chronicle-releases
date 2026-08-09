@@ -332,7 +332,7 @@ jobs:
             sleep 1
           done
           capture_screen validation-artifacts/settings-reset-enlarged-dark.png
-          adb shell input tap 180 446
+          adb shell input tap 180 494
           sleep 2
           adb shell uiautomator dump /sdcard/reset-cancel-dialog.xml >/dev/null
           adb pull /sdcard/reset-cancel-dialog.xml \
@@ -345,7 +345,7 @@ jobs:
           sleep 2
           capture_screen validation-artifacts/settings-after-reset-cancel-enlarged-dark.png
 
-          adb shell input tap 180 446
+          adb shell input tap 180 494
           sleep 2
           adb shell uiautomator dump /sdcard/reset-confirm-dialog.xml >/dev/null
           adb pull /sdcard/reset-confirm-dialog.xml \
