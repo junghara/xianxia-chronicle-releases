@@ -220,12 +220,50 @@ jobs:
           #!/usr/bin/env bash
           set -euo pipefail
           mkdir -p validation-artifacts
+          original_hide_error_dialogs="$(
+            adb shell settings get global hide_error_dialogs 2>/dev/null | tr -d '\r' || true
+          )"
           cleanup() {
             adb shell wm size reset >/dev/null 2>&1 || true
             adb shell wm density reset >/dev/null 2>&1 || true
             adb shell settings put system font_scale 1.0 >/dev/null 2>&1 || true
+            case "$original_hide_error_dialogs" in
+              ""|null)
+                adb shell settings delete global hide_error_dialogs >/dev/null 2>&1 || true
+                ;;
+              *)
+                adb shell settings put global hide_error_dialogs \
+                  "$original_hide_error_dialogs" >/dev/null 2>&1 || true
+                ;;
+            esac
+          }
+          capture_screen() {
+            local output="$1"
+            local remote=/sdcard/alpha106-active-window.xml
+            local active="$RUNNER_TEMP/alpha106-active-window.xml"
+            test -n "$(adb shell pidof com.junghara.xianxiachronicle | tr -d '\r')"
+            adb shell dumpsys activity activities \
+              | grep -E 'mResumedActivity|topResumedActivity' \
+              | grep com.junghara.xianxiachronicle
+            adb shell uiautomator dump "$remote" >/dev/null
+            adb exec-out cat "$remote" > "$active"
+            if grep -Eiq \
+              'android:id/aerr_|isn.t responding|is not responding|keeps stopping|has stopped|응답하지 않|계속 중단' \
+              "$active"; then
+              cp "$active" validation-artifacts/system-error-overlay.xml
+              adb shell dumpsys window windows \
+                > validation-artifacts/system-error-windows.txt || true
+              echo 'System error/ANR overlay blocks UI evidence.' >&2
+              return 1
+            fi
+            adb exec-out screencap -p > "$output"
+            test -s "$output"
           }
           trap cleanup EXIT
+          adb shell settings put global hide_error_dialogs 1
+          for launcher in com.google.android.apps.nexuslauncher com.android.launcher3; do
+            adb shell am force-stop "$launcher" >/dev/null 2>&1 || true
+          done
           adb shell wm size 360x640
           adb shell wm density 160
           adb shell settings put system font_scale 1.3
@@ -237,14 +275,14 @@ jobs:
           sleep 6
           test -n "$(adb shell pidof com.junghara.xianxiachronicle | tr -d '\r')"
           adb shell dumpsys activity activities | grep -E "mResumedActivity|topResumedActivity" | grep com.junghara.xianxiachronicle
-          adb exec-out screencap -p > validation-artifacts/world-enlarged-dark.png
+          capture_screen validation-artifacts/world-enlarged-dark.png
           tap_y=600
           for entry in "chronicle:108" "agents:180" "ranking:252" "settings:324"; do
             name="${entry%%:*}"
             tap_x="${entry##*:}"
             adb shell input tap "$tap_x" "$tap_y"
             sleep 2
-            adb exec-out screencap -p > "validation-artifacts/$name-enlarged-dark.png"
+            capture_screen "validation-artifacts/$name-enlarged-dark.png"
           done
           adb shell input tap 180 "$tap_y"
           sleep 2
@@ -253,14 +291,14 @@ jobs:
           adb shell uiautomator dump /sdcard/search-dialog.xml
           adb pull /sdcard/search-dialog.xml validation-artifacts/search-dialog.xml
           grep -F "인물 검색" validation-artifacts/search-dialog.xml
-          adb exec-out screencap -p > validation-artifacts/search-dialog-enlarged-dark.png
+          capture_screen validation-artifacts/search-dialog-enlarged-dark.png
           adb shell input keyevent 4
           adb shell input keyevent 4
           sleep 2
           adb shell input tap 180 "$tap_y"
           adb shell input swipe 180 500 180 240 600
           sleep 3
-          adb exec-out screencap -p > validation-artifacts/agents-scrolled-enlarged-dark.png
+          capture_screen validation-artifacts/agents-scrolled-enlarged-dark.png
           adb shell settings put system font_scale 1.0
           adb shell cmd uimode night no
           adb shell am force-stop com.junghara.xianxiachronicle
@@ -268,7 +306,7 @@ jobs:
           sleep 6
           adb shell input tap 36 "$tap_y"
           sleep 2
-          adb exec-out screencap -p > validation-artifacts/world-light.png
+          capture_screen validation-artifacts/world-light.png
           echo "Verify Release lifecycle restart"
           adb shell am force-stop com.junghara.xianxiachronicle
           adb shell am start -W -n com.junghara.xianxiachronicle/.MainActivity
