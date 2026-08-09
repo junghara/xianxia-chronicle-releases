@@ -287,12 +287,20 @@ jobs:
           adb shell am start -W -n com.junghara.xianxiachronicle/.MainActivity
           sleep 6
           test -n "$(adb shell pidof com.junghara.xianxiachronicle | tr -d '\r')"
-          adb shell input tap 305 160
+          adb shell input tap 324 600
           sleep 2
-          adb shell uiautomator dump /sdcard/paused-dashboard.xml >/dev/null
-          adb pull /sdcard/paused-dashboard.xml \
-            validation-artifacts/paused-dashboard.xml >/dev/null
-          grep -F "정지" validation-artifacts/paused-dashboard.xml
+          adb shell input tap 54 298
+          sleep 2
+          adb shell uiautomator dump /sdcard/paused-settings.xml >/dev/null
+          adb pull /sdcard/paused-settings.xml \
+            validation-artifacts/paused-settings.xml >/dev/null
+          grep -F "설정 · 정지" validation-artifacts/paused-settings.xml
+          adb shell input tap 36 600
+          sleep 2
+          adb shell uiautomator dump /sdcard/paused-world.xml >/dev/null
+          adb pull /sdcard/paused-world.xml \
+            validation-artifacts/paused-world.xml >/dev/null
+          grep -F "세계 · 정지" validation-artifacts/paused-world.xml
           adb shell dumpsys activity activities | grep -E "mResumedActivity|topResumedActivity" | grep com.junghara.xianxiachronicle
           capture_screen validation-artifacts/world-enlarged-dark.png
           tap_y=600
