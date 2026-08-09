@@ -65,11 +65,14 @@ jobs:
         run: |
           set -euo pipefail
           ./build/performance_baseline | tee build/i0-baseline.txt
+          ./build/storage_workflow_latency_micro |
+            tee build/storage-workflow-latency.txt
           ./build/alpha_1_0_5_benchmarks | tee build/i7-benchmarks.txt
           python3 tests/i7_benchmark_contract.py \
             build/i7-benchmarks.txt \
             build/i0-baseline.txt \
-            tests/fixtures/alpha-1.0.5-b0-b7-v1.tsv
+            tests/fixtures/current-b0-b7-v1.tsv \
+            build/storage-workflow-latency.txt
       - name: Run Alpha 1.0.6 structural contracts
         shell: bash
         run: |
