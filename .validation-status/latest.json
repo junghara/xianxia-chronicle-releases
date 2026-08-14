@@ -1,1 +1,1 @@
-{"status":"success","version":"1.0.8","source_ref":"e5553bbd82a6bab95699c37ce9199d7ba1fe8181","workflow_run_id":"31374221635","completed_at":"2026-08-10T09:34:36Z","jobs":{"prepare":"success","host":"success","sanitizers":"success","android":"success","release_smoke":"success"}}
+{"status":"failure","version":"1.0.9","source_ref":"1b020c8e8987c3489ef0ec8f1036156e0735bc3c","workflow_run_id":"31794574581","completed_at":"2026-08-14T11:08:21Z","jobs":{"prepare":"success","host":"failure","sanitizers":"cancelled","android":"success","release_smoke":"cancelled"}}
