@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       source_ref: ${{ steps.trigger.outputs.source_ref }}
+      performance_ref: ${{ steps.trigger.outputs.performance_ref }}
       version: ${{ steps.trigger.outputs.version }}
     steps:
       - uses: actions/checkout@v4
@@ -31,11 +32,14 @@ jobs:
           trigger="$(git diff-tree --no-commit-id --name-only -r "$GITHUB_SHA" \
             | grep '^.validation-trigger/.*\.json$' | head -n 1)"
           test -n "$trigger"
-          source_ref="$(jq -r '.source_ref' "$trigger")"
-          version="$(jq -r '.version' "$trigger")"
+          source_ref="$(jq -er '.source_ref' "$trigger")"
+          performance_ref="$(jq -er '.performance_ref' "$trigger")"
+          version="$(jq -er '.version' "$trigger")"
           [[ "$source_ref" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$performance_ref" =~ ^[0-9a-f]{40}$ ]]
           [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           echo "source_ref=$source_ref" >> "$GITHUB_OUTPUT"
+          echo "performance_ref=$performance_ref" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
   host:
@@ -60,6 +64,32 @@ jobs:
         run: cmake --build build -j2
       - name: Run complete host regression suite
         run: ctest --test-dir build --output-on-failure
+      - name: Check out same-runner performance reference
+        uses: actions/checkout@v4
+        with:
+          repository: junghara/xianxia-chronicle-AI-simulator
+          ref: ${{ needs.prepare.outputs.performance_ref }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+          path: performance-reference
+      - name: Configure same-runner performance reference
+        run: >-
+          cmake -S performance-reference -B performance-reference-build
+          -DCMAKE_BUILD_TYPE=Release
+      - name: Build same-runner performance reference
+        run: >-
+          cmake --build performance-reference-build -j2 --target
+          performance_baseline xianxia_b0_b7_benchmarks
+          storage_workflow_latency_micro
+      - name: Measure same-runner performance reference
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./performance-reference-build/performance_baseline |
+            tee performance-reference-build/i0-baseline.txt
+          ./performance-reference-build/storage_workflow_latency_micro |
+            tee performance-reference-build/storage-workflow-latency.txt
+          ./performance-reference-build/xianxia_b0_b7_benchmarks |
+            tee performance-reference-build/i7-benchmarks.txt
       - name: Run performance baselines and gates
         shell: bash
         run: |
@@ -76,7 +106,10 @@ jobs:
             build/i7-benchmarks.txt \
             build/i0-baseline.txt \
             tests/fixtures/current-b0-b7-v1.tsv \
-            build/storage-workflow-latency.txt
+            build/storage-workflow-latency.txt \
+            performance-reference-build/i7-benchmarks.txt \
+            performance-reference-build/i0-baseline.txt \
+            performance-reference-build/storage-workflow-latency.txt
       - name: Run inherited and Alpha 1.0.8 structural contracts
         shell: bash
         run: |
