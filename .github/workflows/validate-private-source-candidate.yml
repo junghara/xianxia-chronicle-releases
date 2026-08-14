@@ -71,7 +71,7 @@ jobs:
           fi
           ./build/storage_workflow_latency_micro |
             tee build/storage-workflow-latency.txt
-          ./build/alpha_1_0_5_benchmarks | tee build/i7-benchmarks.txt
+          ./build/xianxia_b0_b7_benchmarks | tee build/i7-benchmarks.txt
           python3 tests/i7_benchmark_contract.py \
             build/i7-benchmarks.txt \
             build/i0-baseline.txt \
