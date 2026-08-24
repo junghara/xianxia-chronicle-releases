@@ -97,7 +97,7 @@ jobs:
           ./build/performance_baseline | tee build/i0-baseline.txt
           if [[ -x ./build/alpha_108_observer_performance ]]; then
             ./build/alpha_108_observer_performance |
-              tee build/alpha-1.0.8-observer-performance.txt
+              tee build/alpha-1.1.0-observer-performance.txt
           fi
           ./build/storage_workflow_latency_micro |
             tee build/storage-workflow-latency.txt
@@ -110,7 +110,22 @@ jobs:
             performance-reference-build/i7-benchmarks.txt \
             performance-reference-build/i0-baseline.txt \
             performance-reference-build/storage-workflow-latency.txt
-      - name: Run inherited and Alpha 1.0.8 structural contracts
+      - name: Measure Alpha 1.1.0 fixed-SHA live runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./build/alpha110_live_runtime_benchmark \
+            --commit-sha "${{ needs.prepare.outputs.source_ref }}" \
+            | tee build/alpha-1.1.0-live-runtime-performance.json
+      - name: Upload Alpha 1.1.0 performance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alpha-1.1.0-performance-${{ needs.prepare.outputs.source_ref }}
+          path: build/alpha-1.1.0-live-runtime-performance.json
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Run inherited and Alpha 1.1.0 structural contracts
         shell: bash
         run: |
           set -euo pipefail
@@ -119,6 +134,14 @@ jobs:
           python3 tests/android_startup_contract.py
           python3 tests/alpha_106_cleanup_contract.py
           python3 tests/release_runtime_parity_contract.py
+          python3 tests/alpha110_requirement_coverage_test.py
+          python3 tests/alpha110_sqlite_schema_contract.py
+          python3 tests/alpha110_android_sqlite_contract.py
+          python3 tests/alpha110_android_health_contract.py
+          python3 tests/alpha110_build_integrity_contract.py
+          python3 tests/alpha110_unified_search_contract.py
+          python3 tests/alpha110_single_authority_contract.py
+          python3 tests/alpha110_release_contract.py
 
   sanitizers:
     needs: prepare
@@ -274,7 +297,7 @@ jobs:
       - name: Prepare emulator evidence script
         shell: bash
         run: |
-          cat > "$RUNNER_TEMP/alpha-1.0.8-emulator-evidence.sh" <<'SCRIPT'
+          cat > "$RUNNER_TEMP/alpha-1.1.0-emulator-evidence.sh" <<'SCRIPT'
           #!/usr/bin/env bash
           set -euo pipefail
           mkdir -p validation-artifacts
@@ -297,8 +320,8 @@ jobs:
           }
           capture_screen() {
             local output="$1"
-            local remote=/sdcard/alpha108-active-window.xml
-            local active="$RUNNER_TEMP/alpha108-active-window.xml"
+            local remote=/sdcard/alpha110-active-window.xml
+            local active="$RUNNER_TEMP/alpha110-active-window.xml"
             test -n "$(adb shell pidof com.junghara.xianxiachronicle | tr -d '\r')"
             adb shell dumpsys activity activities \
               | grep -E 'mResumedActivity|topResumedActivity' \
@@ -319,8 +342,8 @@ jobs:
           }
           tap_dialog_button() {
             local text="$1"
-            local remote=/sdcard/alpha108-dialog.xml
-            local active="$RUNNER_TEMP/alpha108-dialog.xml"
+            local remote=/sdcard/alpha110-dialog.xml
+            local active="$RUNNER_TEMP/alpha110-dialog.xml"
             local button_x
             local button_y
             adb shell uiautomator dump "$remote" >/dev/null
@@ -371,12 +394,12 @@ jobs:
           done
           adb shell input tap 180 "$tap_y"
           sleep 2
-          # Alpha 1.0.8 adds a two-line hub introduction above the search CTA.
+          # Alpha 1.1.0 통합 탐색 요약 아래의 검색 버튼을 누른다.
           adb shell input tap 180 319
           sleep 2
           adb shell uiautomator dump /sdcard/search-dialog.xml
           adb pull /sdcard/search-dialog.xml validation-artifacts/search-dialog.xml
-          grep -F "인물 검색" validation-artifacts/search-dialog.xml
+          grep -F "통합 검색" validation-artifacts/search-dialog.xml
           capture_screen validation-artifacts/search-dialog-enlarged-dark.png
           adb shell input keyevent 4
           adb shell input keyevent 4
@@ -455,7 +478,7 @@ jobs:
           adb shell dumpsys activity activities | grep -E "mResumedActivity|topResumedActivity" | grep com.junghara.xianxiachronicle
           ! adb logcat -d | grep -E "FATAL EXCEPTION|Fatal signal|UnsatisfiedLinkError" | grep com.junghara.xianxiachronicle
           SCRIPT
-          chmod +x "$RUNNER_TEMP/alpha-1.0.8-emulator-evidence.sh"
+          chmod +x "$RUNNER_TEMP/alpha-1.1.0-emulator-evidence.sh"
       - name: Boot emulator and capture Release UI evidence
         uses: ReactiveCircus/android-emulator-runner@v2.38.0
         with:
@@ -464,12 +487,12 @@ jobs:
           target: google_apis
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: bash "$RUNNER_TEMP/alpha-1.0.8-emulator-evidence.sh"
+          script: bash "$RUNNER_TEMP/alpha-1.1.0-emulator-evidence.sh"
       - name: Upload emulator screen evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: alpha-1.0.8-emulator-screens-${{ needs.prepare.outputs.source_ref }}
+          name: alpha-1.1.0-emulator-screens-${{ needs.prepare.outputs.source_ref }}
           path: validation-artifacts
           if-no-files-found: error
           retention-days: 90
