@@ -127,28 +127,51 @@ jobs:
             exit 1
           }
 
-      - name: Require successful validation for the same source SHA
+      - name: Require immutable successful validation for the same source SHA
         shell: bash
         run: |
           set -euo pipefail
-          status="release-control/.validation-status/latest.json"
-          [[ -s "$status" ]] || {
-            echo "Missing pinned-source validation status." >&2
+          status="release-control/.validation-status/by-source/$SOURCE_REF.json"
+          evidence="release-control/.validation-evidence/by-source/$SOURCE_REF.json"
+          [[ -s "$status" && -s "$evidence" ]] || {
+            echo "Missing immutable validation/evidence for source $SOURCE_REF." >&2
             exit 1
           }
           version="$(tr -d '\r\n' < source/VERSION)"
+          manifest_sha="$(
+            sha256sum source/data/alpha110/requirement_coverage_manifest.json |
+              awk '{print $1}'
+          )"
+          validation_sha="$(sha256sum "$status" | awk '{print $1}')"
           jq -e \
             --arg source_ref "$SOURCE_REF" \
             --arg version "$version" \
-            '.status == "success" and
+            --arg manifest_sha "$manifest_sha" \
+            '.contract == "alpha110.fixed-source-validation.v1" and
+             .status == "success" and
              .source_ref == $source_ref and
              .version == $version and
-             (.jobs.prepare == "success") and
-             (.jobs.host == "success") and
-             (.jobs.sanitizers == "success") and
-             (.jobs.android == "success") and
-             (.jobs.release_smoke == "success")' \
+             .source_manifest_sha256 == $manifest_sha and
+             .requirement_count == 238 and
+             ([.jobs.prepare,.jobs.host,.jobs.sanitizers,.jobs.android,
+               .jobs.release_smoke] | all(. == "success")) and
+             (.artifacts.performance.sha256 | test("^[0-9a-f]{64}$")) and
+             (.artifacts.emulator.sha256 | test("^[0-9a-f]{64}$"))' \
             "$status" >/dev/null
+          jq -e \
+            --arg source_ref "$SOURCE_REF" \
+            --arg manifest_sha "$manifest_sha" \
+            --arg validation_sha "$validation_sha" \
+            '.contract == "alpha110.requirement-release-evidence.v1" and
+             .evidence_state == "SAME_SHA_VERIFIED" and
+             .source_ref == $source_ref and
+             .source_manifest_sha256 == $manifest_sha and
+             .validation_status_sha256 == $validation_sha and
+             .requirement_count == 238 and
+             ([.rows[]] | length == 238) and
+             ([.rows[].merge_sha] | all(. == $source_ref)) and
+             ([.rows[].evidence_state] | all(. == "SAME_SHA_VERIFIED"))' \
+            "$evidence" >/dev/null
 
       - name: Validate public update notes
         working-directory: source
@@ -339,8 +362,23 @@ jobs:
             exit 1
           fi
 
+          python3 tests/alpha110_build_integrity_contract.py "$output_apk"
           sha256sum "$output_apk" > "$output_apk.sha256"
+          apk_sha256="$(awk '{print $1}' "$output_apk.sha256")"
+          [[ "$apk_sha256" =~ ^[0-9a-f]{64}$ ]]
           tag="v${release_id}"
+          released_evidence_name="xianxia-chronicle-${release_id}-238-requirements.json"
+          released_evidence_path="$output_dir/$released_evidence_name"
+          python3 scripts/stamp_alpha110_requirement_evidence.py \
+            --manifest data/alpha110/requirement_coverage_manifest.json \
+            --validation-status \
+              "../release-control/.validation-status/by-source/$SOURCE_REF.json" \
+            --source-sha "$SOURCE_REF" \
+            --state RELEASED \
+            --release-url \
+              "https://github.com/$GITHUB_REPOSITORY/releases/tag/$tag" \
+            --apk-sha256 "$apk_sha256" \
+            --output "$released_evidence_path"
           {
             echo "# 선협 역사 기록서 Alpha $release_id 정식 서명 Release"
             echo
@@ -360,6 +398,8 @@ jobs:
             echo "- APK 내부 버전: $version"
             echo "- 검증된 비공개 source SHA: $SOURCE_REF"
             echo "- 동일 SHA 공개 검증 상태: 통과"
+            echo "- 238개 요구사항 공개 증명: $released_evidence_name"
+            echo "- APK SHA-256: $apk_sha256"
             echo "- 빌드 유형: Release"
             echo "- 디버그 가능: 비활성화"
             echo "- 비공개 CI 전체 회귀·Release 실행 게이트: 통과"
@@ -381,6 +421,8 @@ jobs:
           echo "certificate_path=source/$output_dir/signing-certificate.txt" >> "$GITHUB_OUTPUT"
           echo "summary_path=source/$summary_path" >> "$GITHUB_OUTPUT"
           echo "details_path=source/$details_path" >> "$GITHUB_OUTPUT"
+          echo "evidence_path=source/$released_evidence_path" >> "$GITHUB_OUTPUT"
+          echo "apk_sha256=$apk_sha256" >> "$GITHUB_OUTPUT"
           echo "notes_path=source/$output_dir/RELEASE_NOTES.md" >> "$GITHUB_OUTPUT"
 
       - name: Upload signed Release artifact
@@ -393,6 +435,7 @@ jobs:
             ${{ steps.package.outputs.certificate_path }}
             ${{ steps.package.outputs.summary_path }}
             ${{ steps.package.outputs.details_path }}
+            ${{ steps.package.outputs.evidence_path }}
           if-no-files-found: error
           retention-days: 90
 
@@ -406,6 +449,7 @@ jobs:
           CERTIFICATE_PATH: ${{ steps.package.outputs.certificate_path }}
           SUMMARY_PATH: ${{ steps.package.outputs.summary_path }}
           DETAILS_PATH: ${{ steps.package.outputs.details_path }}
+          EVIDENCE_PATH: ${{ steps.package.outputs.evidence_path }}
           NOTES_PATH: ${{ steps.package.outputs.notes_path }}
         shell: bash
         run: |
@@ -416,6 +460,7 @@ jobs:
             "$CERTIFICATE_PATH#Signing certificate information"
             "$SUMMARY_PATH#Update summary"
             "$DETAILS_PATH#Detailed changelog"
+            "$EVIDENCE_PATH#238-requirement released evidence"
           )
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber --repo "$GITHUB_REPOSITORY"
@@ -430,22 +475,67 @@ jobs:
           RELEASE_VERSION: ${{ steps.package.outputs.version }}
           RELEASE_TAG: ${{ steps.package.outputs.tag }}
           APK_NAME: ${{ steps.package.outputs.apk_name }}
+          APK_SHA256: ${{ steps.package.outputs.apk_sha256 }}
+          EVIDENCE_PATH: ${{ steps.package.outputs.evidence_path }}
         shell: bash
         run: |
           set -euo pipefail
-          status_path=".release-status/release-latest.json"
-          endpoint="repos/$GITHUB_REPOSITORY/contents/$status_path"
           completed_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-          status_file="$(mktemp)"
-          cat > "$status_file" <<EOF
-          {"status":"success","channel":"release","version":"$RELEASE_VERSION","tag":"$RELEASE_TAG","apk":"$APK_NAME","source_ref":"$SOURCE_REF","workflow_run_id":"$GITHUB_RUN_ID","completed_at":"$completed_at","summary":"release body and attached file","details":"attached markdown file"}
-          EOF
+          release_url="https://github.com/$GITHUB_REPOSITORY/releases/tag/$RELEASE_TAG"
+          evidence_sha256="$(sha256sum "$EVIDENCE_PATH" | awk '{print $1}')"
+          [[ "$APK_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$evidence_sha256" =~ ^[0-9a-f]{64}$ ]]
+          status_file="$RUNNER_TEMP/release-status.json"
+          jq -nc \
+            --arg contract "alpha110.fixed-source-release.v1" \
+            --arg status success \
+            --arg channel release \
+            --arg version "$RELEASE_VERSION" \
+            --arg tag "$RELEASE_TAG" \
+            --arg apk "$APK_NAME" \
+            --arg apk_sha256 "$APK_SHA256" \
+            --arg source_ref "$SOURCE_REF" \
+            --arg workflow_run_id "$GITHUB_RUN_ID" \
+            --arg completed_at "$completed_at" \
+            --arg release_url "$release_url" \
+            --arg evidence_sha256 "$evidence_sha256" \
+            '{contract:$contract,status:$status,channel:$channel,
+              version:$version,tag:$tag,apk:$apk,apk_sha256:$apk_sha256,
+              source_ref:$source_ref,workflow_run_id:$workflow_run_id,
+              completed_at:$completed_at,release_url:$release_url,
+              requirement_evidence_sha256:$evidence_sha256,
+              summary:"release body and attached file",
+              details:"attached markdown file"}' > "$status_file"
+
+          # source SHA별 성공 기록은 생성 후 덮어쓰지 않는다.
+          source_path=".release-status/by-source/$SOURCE_REF.json"
+          source_endpoint="repos/$GITHUB_REPOSITORY/contents/$source_path"
+          source_sha="$(gh api "$source_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          if [[ -z "$source_sha" ]]; then
+            encoded="$(base64 -w 0 "$status_file")"
+            gh api --method PUT "$source_endpoint" \
+              -f message="Pin Release $RELEASE_VERSION for $SOURCE_REF" \
+              -f content="$encoded" -f branch=main >/dev/null
+          else
+            existing="$RUNNER_TEMP/existing-release-status.json"
+            gh api "$source_endpoint?ref=main" --jq '.content' |
+              tr -d '\n' | base64 -d > "$existing"
+            jq -e \
+              --arg source_ref "$SOURCE_REF" \
+              --arg apk_sha256 "$APK_SHA256" \
+              '.status == "success" and .source_ref == $source_ref and
+               .apk_sha256 == $apk_sha256' "$existing" >/dev/null
+          fi
+
+          latest_path=".release-status/release-latest.json"
+          latest_endpoint="repos/$GITHUB_REPOSITORY/contents/$latest_path"
           encoded="$(base64 -w 0 "$status_file")"
-          current_sha="$(gh api "$endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
-          args=(--method PUT "$endpoint" -f message="Record Release $RELEASE_VERSION" -f content="$encoded" -f branch="main")
+          current_sha="$(gh api "$latest_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          args=(--method PUT "$latest_endpoint"
+            -f message="Record Release $RELEASE_VERSION"
+            -f content="$encoded" -f branch=main)
           [[ -z "$current_sha" ]] || args+=(-f sha="$current_sha")
           gh api "${args[@]}" >/dev/null
-
       - name: Remove signing key from runner
         if: always()
         shell: bash
