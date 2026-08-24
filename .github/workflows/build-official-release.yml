@@ -127,6 +127,29 @@ jobs:
             exit 1
           }
 
+      - name: Require successful validation for the same source SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          status="release-control/.validation-status/latest.json"
+          [[ -s "$status" ]] || {
+            echo "Missing pinned-source validation status." >&2
+            exit 1
+          }
+          version="$(tr -d '\r\n' < source/VERSION)"
+          jq -e \
+            --arg source_ref "$SOURCE_REF" \
+            --arg version "$version" \
+            '.status == "success" and
+             .source_ref == $source_ref and
+             .version == $version and
+             (.jobs.prepare == "success") and
+             (.jobs.host == "success") and
+             (.jobs.sanitizers == "success") and
+             (.jobs.android == "success") and
+             (.jobs.release_smoke == "success")' \
+            "$status" >/dev/null
+
       - name: Validate public update notes
         working-directory: source
         shell: bash
@@ -335,6 +358,8 @@ jobs:
             echo
             echo "- 공개 릴리스 식별자: $release_id"
             echo "- APK 내부 버전: $version"
+            echo "- 검증된 비공개 source SHA: $SOURCE_REF"
+            echo "- 동일 SHA 공개 검증 상태: 통과"
             echo "- 빌드 유형: Release"
             echo "- 디버그 가능: 비활성화"
             echo "- 비공개 CI 전체 회귀·Release 실행 게이트: 통과"
