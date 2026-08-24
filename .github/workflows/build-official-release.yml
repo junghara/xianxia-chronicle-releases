@@ -21,7 +21,7 @@ permissions:
 
 concurrency:
   group: xianxia-signed-release-apk
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build-release:
@@ -36,6 +36,7 @@ jobs:
         with:
           path: release-control
           fetch-depth: 1
+          persist-credentials: false
 
       - name: Resolve pinned private source
         id: source
@@ -112,8 +113,10 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Verify pinned private source
+      - name: Verify pinned private source and main ancestry
         working-directory: source
+        env:
+          GH_TOKEN: ${{ secrets.SOURCE_REPO_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
@@ -124,6 +127,14 @@ jobs:
           actual="$(git rev-parse HEAD)"
           [[ "$actual" == "$SOURCE_REF" ]] || {
             echo "Pinned source mismatch: expected=$SOURCE_REF actual=$actual" >&2
+            exit 1
+          }
+          comparison="$(
+            gh api "repos/$SOURCE_REPOSITORY/compare/$SOURCE_REF...main" \
+              --jq '.status'
+          )"
+          [[ "$comparison" == "ahead" || "$comparison" == "identical" ]] || {
+            echo "Source SHA is not an ancestor of private main: $SOURCE_REF" >&2
             exit 1
           }
 
@@ -199,6 +210,112 @@ jobs:
             exit 1
           }
 
+      - name: Protect immutable Release tag and source key
+        working-directory: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d '\r\n' < VERSION)"
+          release_id="${RELEASE_ID:-$version}"
+          escaped_version="${version//./\\.}"
+          if [[ "$release_id" != "$version" ]] &&
+             [[ ! "$release_id" =~ ^${escaped_version}-r[1-9][0-9]*$ ]]; then
+            echo "release_id must equal VERSION or append -rN to it" >&2
+            exit 1
+          fi
+          tag="v${release_id}"
+          release_endpoint="repos/$GITHUB_REPOSITORY/releases/tags/$tag"
+          tag_endpoint="repos/$GITHUB_REPOSITORY/git/ref/tags/$tag"
+          release_exists=false
+          release_api_url=""
+          if release_api_url="$(
+            gh release view "$tag" --repo "$GITHUB_REPOSITORY" \
+              --json apiUrl --jq '.apiUrl' 2>/dev/null
+          )"; then
+            release_api_path="${release_api_url#https://api.github.com/}"
+            [[ "$release_api_path" =~ ^repos/$GITHUB_REPOSITORY/releases/[0-9]+$ ]]
+            gh api "$release_api_path" > "$RUNNER_TEMP/release-preflight.json"
+            release_exists=true
+          elif gh api "$tag_endpoint" >/dev/null 2>&1; then
+            echo "Git tag $tag exists without a matching Release. Refusing to reuse it." >&2
+            exit 1
+          fi
+
+          # source SHA별 성공 키는 하나의 Release 신원만 가질 수 있다.
+          # 같은 source를 -rN으로 다시 내보내 증거가 갈라지는 일을 게시 전에 막는다.
+          source_path=".release-status/by-source/$SOURCE_REF.json"
+          source_endpoint="repos/$GITHUB_REPOSITORY/contents/$source_path"
+          source_status_sha="$(gh api "$source_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          if [[ -n "$source_status_sha" ]]; then
+            [[ "$release_exists" == true ]] || {
+              echo "Release status already exists for $SOURCE_REF, but its Release is missing." >&2
+              exit 1
+            }
+            existing_status="$RUNNER_TEMP/release-status-preflight.json"
+            gh api "$source_endpoint?ref=main" --jq '.content' |
+              tr -d '\n' | base64 -d > "$existing_status"
+            expected_url="https://github.com/$GITHUB_REPOSITORY/releases/tag/$tag"
+            jq -e \
+              --arg source_ref "$SOURCE_REF" \
+              --arg version "$release_id" \
+              --arg tag "$tag" \
+              --arg release_url "$expected_url" \
+              '.contract == "alpha110.fixed-source-release.v1" and
+               .status == "success" and .channel == "release" and
+               .source_ref == $source_ref and .version == $version and
+               .tag == $tag and .release_url == $release_url' \
+              "$existing_status" >/dev/null || {
+                echo "Source $SOURCE_REF is already bound to a different Release." >&2
+                exit 1
+              }
+          fi
+
+          # 배포보다 먼저 source SHA와 Release 신원을 불변 파일로 선점한다.
+          # 게시 직후 상태 기록이 실패해도 같은 source의 다른 tag는 만들 수 없다.
+          binding_path=".release-bindings/by-source/$SOURCE_REF.json"
+          binding_endpoint="repos/$GITHUB_REPOSITORY/contents/$binding_path"
+          binding_file="$RUNNER_TEMP/source-release-binding.json"
+          expected_url="https://github.com/$GITHUB_REPOSITORY/releases/tag/$tag"
+          jq -nc \
+            --arg contract "alpha110.source-release-binding.v1" \
+            --arg source_ref "$SOURCE_REF" \
+            --arg version "$release_id" \
+            --arg tag "$tag" \
+            --arg release_url "$expected_url" \
+            '{contract:$contract,source_ref:$source_ref,version:$version,
+              tag:$tag,release_url:$release_url}' > "$binding_file"
+          binding_sha="$(gh api "$binding_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          if [[ -z "$binding_sha" ]]; then
+            encoded="$(base64 -w 0 "$binding_file")"
+            gh api --method PUT "$binding_endpoint" \
+              -f message="source SHA 릴리스 결합: $tag" \
+              -f content="$encoded" -f branch=main >/dev/null
+          fi
+          existing_binding="$RUNNER_TEMP/existing-source-release-binding.json"
+          gh api "$binding_endpoint?ref=main" --jq '.content' |
+            tr -d '\n' | base64 -d > "$existing_binding"
+          cmp "$binding_file" "$existing_binding" || {
+            echo "Source $SOURCE_REF is already bound to a different Release identity." >&2
+            exit 1
+          }
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK and NDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;3.22.1"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
       - name: Restore signing key and normalize secret values
         env:
           KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
@@ -250,12 +367,6 @@ jobs:
                   handle.write(f"{name}={value}\n")
           PY
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
       - name: Resolve approved signing certificate
         shell: bash
         run: |
@@ -266,15 +377,6 @@ jobs:
           )"
           [[ "$approved_certificate_sha256" =~ ^[0-9A-F]{64}$ ]]
           echo "XIANXIA_APPROVED_CERTIFICATE_SHA256=$approved_certificate_sha256" >> "$GITHUB_ENV"
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android SDK and NDK
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;3.22.1"
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
 
       - name: Build optimized unsigned Release APK
         working-directory: source
@@ -363,7 +465,7 @@ jobs:
           fi
 
           python3 tests/alpha110_build_integrity_contract.py "$output_apk"
-          sha256sum "$output_apk" > "$output_apk.sha256"
+          (cd "$output_dir" && sha256sum "$apk_name" > "$apk_name.sha256")
           apk_sha256="$(awk '{print $1}' "$output_apk.sha256")"
           [[ "$apk_sha256" =~ ^[0-9a-f]{64}$ ]]
           tag="v${release_id}"
@@ -425,6 +527,17 @@ jobs:
           echo "apk_sha256=$apk_sha256" >> "$GITHUB_OUTPUT"
           echo "notes_path=source/$output_dir/RELEASE_NOTES.md" >> "$GITHUB_OUTPUT"
 
+      - name: Remove signing material before artifact actions
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/xianxia-release-signing.p12"
+          {
+            echo "RELEASE_STORE_PASSWORD="
+            echo "RELEASE_KEY_ALIAS="
+            echo "RELEASE_KEY_PASSWORD="
+          } >> "$GITHUB_ENV"
+
       - name: Upload signed Release artifact
         uses: actions/upload-artifact@v4
         with:
@@ -439,12 +552,14 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      - name: Publish latest signed Release
+      - name: Publish or resume latest signed Release
+        id: publish
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.package.outputs.tag }}
           RELEASE_VERSION: ${{ steps.package.outputs.version }}
           APK_PATH: ${{ steps.package.outputs.apk_path }}
+          LOCAL_APK_SHA256: ${{ steps.package.outputs.apk_sha256 }}
           CHECKSUM_PATH: ${{ steps.package.outputs.checksum_path }}
           CERTIFICATE_PATH: ${{ steps.package.outputs.certificate_path }}
           SUMMARY_PATH: ${{ steps.package.outputs.summary_path }}
@@ -462,27 +577,344 @@ jobs:
             "$DETAILS_PATH#Detailed changelog"
             "$EVIDENCE_PATH#238-requirement released evidence"
           )
-          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber --repo "$GITHUB_REPOSITORY"
-            gh release edit "$RELEASE_TAG" --title "Alpha $RELEASE_VERSION 정식 서명 Release" --notes-file "$NOTES_PATH" --latest --repo "$GITHUB_REPOSITORY"
+          # 서명 빌드 동안에도 source↔Release 결합이 바뀌지 않았는지
+          # 자산 생성/게시 전에 다시 확인한다.
+          expected_url="https://github.com/$GITHUB_REPOSITORY/releases/tag/$RELEASE_TAG"
+          binding_path=".release-bindings/by-source/$SOURCE_REF.json"
+          binding_endpoint="repos/$GITHUB_REPOSITORY/contents/$binding_path"
+          binding_file="$RUNNER_TEMP/source-release-binding-pre-publish.json"
+          gh api "$binding_endpoint?ref=main" --jq '.content' |
+            tr -d '\n' | base64 -d > "$binding_file"
+          jq -e \
+            --arg source_ref "$SOURCE_REF" \
+            --arg version "$RELEASE_VERSION" \
+            --arg tag "$RELEASE_TAG" \
+            --arg release_url "$expected_url" \
+            'keys == ["contract","release_url","source_ref","tag","version"] and
+             .contract == "alpha110.source-release-binding.v1" and
+             .source_ref == $source_ref and .version == $version and
+             .tag == $tag and .release_url == $release_url' \
+            "$binding_file" >/dev/null
+          expected_names="$RUNNER_TEMP/expected-release-assets.txt"
+          actual_names="$RUNNER_TEMP/actual-release-assets.txt"
+          for asset in "$APK_PATH" "$CHECKSUM_PATH" "$CERTIFICATE_PATH" \
+              "$SUMMARY_PATH" "$DETAILS_PATH" "$EVIDENCE_PATH"; do
+            basename "$asset"
+          done | sort > "$expected_names"
+
+          release_endpoint="repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG"
+          tag_endpoint="repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG"
+          release_json="$RUNNER_TEMP/release-to-publish.json"
+          release_exists=false
+          newly_created=false
+          release_api_url=""
+          if release_api_url="$(
+            gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+              --json apiUrl --jq '.apiUrl' 2>/dev/null
+          )"; then
+            release_api_path="${release_api_url#https://api.github.com/}"
+            [[ "$release_api_path" =~ ^repos/$GITHUB_REPOSITORY/releases/[0-9]+$ ]]
+            gh api "$release_api_path" > "$release_json"
+            release_exists=true
           else
-            gh release create "$RELEASE_TAG" "${assets[@]}" --target main --title "Alpha $RELEASE_VERSION 정식 서명 Release" --notes-file "$NOTES_PATH" --latest --repo "$GITHUB_REPOSITORY"
+            if gh api "$tag_endpoint" >/dev/null 2>&1; then
+              echo "Git tag $RELEASE_TAG exists without a matching Release." >&2
+              exit 1
+            fi
+            source_path=".release-status/by-source/$SOURCE_REF.json"
+            source_endpoint="repos/$GITHUB_REPOSITORY/contents/$source_path"
+            if gh api "$source_endpoint?ref=main" >/dev/null 2>&1; then
+              echo "Source $SOURCE_REF already has a Release status; refusing a second Release." >&2
+              exit 1
+            fi
+            # 자산은 한 번만 올린다. 이후 재실행에서는 아래의 원격 검증만 수행한다.
+            gh release create "$RELEASE_TAG" "${assets[@]}" --draft --target main \
+              --title "Alpha $RELEASE_VERSION 정식 서명 Release" \
+              --notes-file "$NOTES_PATH" --repo "$GITHUB_REPOSITORY"
+            release_api_url="$(
+              gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+                --json apiUrl --jq '.apiUrl'
+            )"
+            release_api_path="${release_api_url#https://api.github.com/}"
+            [[ "$release_api_path" =~ ^repos/$GITHUB_REPOSITORY/releases/[0-9]+$ ]]
+            gh api "$release_api_path" > "$release_json"
+            newly_created=true
           fi
+
+          jq -e \
+            --arg tag "$RELEASE_TAG" \
+            --arg title "Alpha $RELEASE_VERSION 정식 서명 Release" \
+            '.tag_name == $tag and .name == $title and
+             .target_commitish == "main" and .prerelease == false and
+             (.draft | type == "boolean")' "$release_json" >/dev/null
+          is_draft="$(jq -r '.draft' "$release_json")"
+          if [[ "$is_draft" == false ]]; then
+            jq -e --arg url "$expected_url" '.html_url == $url' \
+              "$release_json" >/dev/null
+          fi
+
+          # 게시된 Release는 태그가 public main의 조상이어야 한다.
+          if gh api "$tag_endpoint" >/dev/null 2>&1; then
+            comparison="$(gh api \
+              "repos/$GITHUB_REPOSITORY/compare/$RELEASE_TAG...main" --jq '.status')"
+            [[ "$comparison" == "ahead" || "$comparison" == "identical" ]] || {
+              echo "Release tag is not an ancestor of public main: $RELEASE_TAG" >&2
+              exit 1
+            }
+          elif [[ "$is_draft" != true ]]; then
+            echo "Published Release $RELEASE_TAG has no Git tag." >&2
+            exit 1
+          fi
+
+          local_asset_path() {
+            case "$1" in
+              "$(basename "$APK_PATH")") printf '%s\n' "$APK_PATH" ;;
+              "$(basename "$CHECKSUM_PATH")") printf '%s\n' "$CHECKSUM_PATH" ;;
+              "$(basename "$CERTIFICATE_PATH")") printf '%s\n' "$CERTIFICATE_PATH" ;;
+              "$(basename "$SUMMARY_PATH")") printf '%s\n' "$SUMMARY_PATH" ;;
+              "$(basename "$DETAILS_PATH")") printf '%s\n' "$DETAILS_PATH" ;;
+              "$(basename "$EVIDENCE_PATH")") printf '%s\n' "$EVIDENCE_PATH" ;;
+              *) return 1 ;;
+            esac
+          }
+          asset_upload_spec() {
+            case "$1" in
+              "$(basename "$APK_PATH")")
+                printf '%s\n' "$APK_PATH#Signed ARM64 Release APK" ;;
+              "$(basename "$CHECKSUM_PATH")")
+                printf '%s\n' "$CHECKSUM_PATH#SHA-256 checksum" ;;
+              "$(basename "$CERTIFICATE_PATH")")
+                printf '%s\n' "$CERTIFICATE_PATH#Signing certificate information" ;;
+              "$(basename "$SUMMARY_PATH")")
+                printf '%s\n' "$SUMMARY_PATH#Update summary" ;;
+              "$(basename "$DETAILS_PATH")")
+                printf '%s\n' "$DETAILS_PATH#Detailed changelog" ;;
+              "$(basename "$EVIDENCE_PATH")")
+                printf '%s\n' "$EVIDENCE_PATH#238-requirement released evidence" ;;
+              *) return 1 ;;
+            esac
+          }
+          download_release_assets() {
+            local json_file="$1"
+            local destination="$2"
+            jq -r '.assets[] | [.name, .url] | @tsv' "$json_file" |
+              while IFS=$'\t' read -r asset_name asset_api_url; do
+                [[ "$asset_name" != */* ]]
+                asset_api_path="${asset_api_url#https://api.github.com/}"
+                [[ "$asset_api_path" =~ ^repos/$GITHUB_REPOSITORY/releases/assets/[0-9]+$ ]]
+                gh api -H "Accept: application/octet-stream" "$asset_api_path" > \
+                  "$destination/$asset_name"
+              done
+          }
+
+          jq -r '.assets[].name' "$release_json" | sort > "$actual_names"
+          duplicate_name="$(uniq -d "$actual_names" | head -n 1)"
+          [[ -z "$duplicate_name" ]] || {
+            echo "Duplicate Release asset name: $duplicate_name" >&2
+            exit 1
+          }
+          unexpected_names="$(comm -23 "$actual_names" "$expected_names")"
+          [[ -z "$unexpected_names" ]] || {
+            echo "Unexpected Release assets:" >&2
+            echo "$unexpected_names" >&2
+            exit 1
+          }
+
+          if [[ "$is_draft" == true ]]; then
+            # GitHub의 upstream 502는 이름만 점유한 state=starter, size=0
+            # placeholder를 남길 수 있다. 정상 uploaded 자산은 건드리지 않고,
+            # expected 이름의 빈 starter만 정확한 asset API로 제거한다.
+            while IFS=$'\t' read -r asset_name asset_state asset_size asset_api_url; do
+              case "$asset_state" in
+                uploaded)
+                  ;;
+                starter)
+                  [[ "$asset_size" == 0 ]]
+                  local_asset_path "$asset_name" >/dev/null
+                  asset_api_path="${asset_api_url#https://api.github.com/}"
+                  [[ "$asset_api_path" =~ ^repos/$GITHUB_REPOSITORY/releases/assets/[0-9]+$ ]]
+                  gh api --method DELETE "$asset_api_path" --silent
+                  ;;
+                *)
+                  echo "Unsupported draft asset state: $asset_state" >&2
+                  exit 1
+                  ;;
+              esac
+            done < <(
+              jq -r '.assets[] | [.name, .state, (.size | tostring), .url] | @tsv' \
+                "$release_json"
+            )
+            gh api "$release_api_path" > "$release_json"
+            jq -r '.assets[].name' "$release_json" | sort > "$actual_names"
+            duplicate_name="$(uniq -d "$actual_names" | head -n 1)"
+            [[ -z "$duplicate_name" ]]
+            unexpected_names="$(comm -23 "$actual_names" "$expected_names")"
+            [[ -z "$unexpected_names" ]]
+            jq -e '([.assets[].state] | all(. == "uploaded"))' \
+              "$release_json" >/dev/null
+
+            # 명시적 draft 생성 중 일부 업로드만 성공해도 기존 자산은 절대
+            # 덮어쓰지 않는다. 먼저 각 바이트를 새 빌드와 대조한 뒤 없는
+            # 이름만 추가하여 중단 지점부터 재개한다.
+            partial_dir="$RUNNER_TEMP/release-partial-verify-$GITHUB_RUN_ATTEMPT"
+            install -d -m 0700 "$partial_dir"
+            [[ -z "$(find "$partial_dir" -mindepth 1 -maxdepth 1 -print -quit)" ]]
+            download_release_assets "$release_json" "$partial_dir"
+            while IFS= read -r existing_name; do
+              [[ -n "$existing_name" ]] || continue
+              local_path="$(local_asset_path "$existing_name")"
+              cmp "$local_path" "$partial_dir/$existing_name"
+            done < "$actual_names"
+
+            while IFS= read -r missing_name; do
+              [[ -n "$missing_name" ]] || continue
+              upload_spec="$(asset_upload_spec "$missing_name")"
+              gh release upload "$RELEASE_TAG" "$upload_spec" \
+                --repo "$GITHUB_REPOSITORY"
+            done < <(comm -13 "$actual_names" "$expected_names")
+
+            gh api "$release_api_path" > "$release_json"
+            jq -e '.draft == true and
+              ([.assets[].state] | all(. == "uploaded"))' \
+              "$release_json" >/dev/null
+            jq -r '.assets[].name' "$release_json" | sort > "$actual_names"
+          fi
+          diff -u "$expected_names" "$actual_names"
+          jq -e '([.assets[].state] | all(. == "uploaded"))' \
+            "$release_json" >/dev/null
+
+          verify_dir="$RUNNER_TEMP/release-download-verify-$GITHUB_RUN_ATTEMPT"
+          install -d -m 0700 "$verify_dir"
+          [[ -z "$(find "$verify_dir" -mindepth 1 -maxdepth 1 -print -quit)" ]] || {
+            echo "Release verification directory is not empty." >&2
+            exit 1
+          }
+          download_release_assets "$release_json" "$verify_dir"
+
+          apk_name="$(basename "$APK_PATH")"
+          checksum_name="$(basename "$CHECKSUM_PATH")"
+          evidence_name="$(basename "$EVIDENCE_PATH")"
+          checksum_line="$(tr -d '\r\n' < "$verify_dir/$checksum_name")"
+          if [[ ! "$checksum_line" =~ ^([0-9a-f]{64})[[:space:]][[:space:]]([^/[:space:]]+)$ ]]; then
+            echo "Remote checksum file must contain one basename-only SHA-256 entry." >&2
+            exit 1
+          fi
+          remote_apk_sha256="${BASH_REMATCH[1]}"
+          [[ "${BASH_REMATCH[2]}" == "$apk_name" ]]
+          (cd "$verify_dir" && sha256sum -c "$checksum_name")
+          [[ "$(sha256sum "$verify_dir/$apk_name" | awk '{print $1}')" == \
+             "$remote_apk_sha256" ]]
+
+          internal_version="$(tr -d '\r\n' < source/VERSION)"
+          manifest_sha256="$(
+            sha256sum source/data/alpha110/requirement_coverage_manifest.json |
+              awk '{print $1}'
+          )"
+          validation_status="release-control/.validation-status/by-source/$SOURCE_REF.json"
+          validation_sha256="$(sha256sum "$validation_status" | awk '{print $1}')"
+          remote_evidence="$verify_dir/$evidence_name"
+          jq -e \
+            --arg version "$internal_version" \
+            --arg source_ref "$SOURCE_REF" \
+            --arg release_url "$expected_url" \
+            --arg apk_sha256 "$remote_apk_sha256" \
+            --arg manifest_sha256 "$manifest_sha256" \
+            --arg validation_sha256 "$validation_sha256" \
+            '.version == $version and
+             .contract == "alpha110.requirement-release-evidence.v1" and
+             .source_manifest_contract ==
+               "alpha110.requirement-coverage-manifest.v1" and
+             .source_manifest_sha256 == $manifest_sha256 and
+             .source_ref == $source_ref and .evidence_state == "RELEASED" and
+             .validation_status_sha256 == $validation_sha256 and
+             .release_url == $release_url and .apk_sha256 == $apk_sha256 and
+             .requirement_count == 238 and (.rows | length) == 238 and
+             ([.rows[].merge_sha] | all(. == $source_ref)) and
+             ([.rows[].evidence_state] | all(. == "RELEASED"))' \
+            "$remote_evidence" >/dev/null
+          remote_evidence_sha256="$(sha256sum "$remote_evidence" | awk '{print $1}')"
+
+          # 새 draft와 중단 후 재개하는 draft는 로컬 후보와 바이트 단위로 같아야 한다.
+          # 이미 공개된 정확한 Release는 원격 증거를 기준으로 상태 기록만 재개한다.
+          if [[ "$newly_created" == true || "$is_draft" == true ]]; then
+            [[ "$remote_apk_sha256" == "$LOCAL_APK_SHA256" ]]
+            for local_path in "$CHECKSUM_PATH" "$CERTIFICATE_PATH" \
+                "$SUMMARY_PATH" "$DETAILS_PATH" "$EVIDENCE_PATH"; do
+              remote_path="$verify_dir/$(basename "$local_path")"
+              cmp "$local_path" "$remote_path"
+            done
+          fi
+
+          # source별 상태가 이미 있으면 전체 Release 신원이 정확히 같을 때만
+          # 상태 재기록을 허용한다. draft와 성공 상태의 공존은 거부한다.
+          source_path=".release-status/by-source/$SOURCE_REF.json"
+          source_endpoint="repos/$GITHUB_REPOSITORY/contents/$source_path"
+          source_status_sha="$(gh api "$source_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          if [[ -n "$source_status_sha" ]]; then
+            [[ "$is_draft" == false ]] || {
+              echo "A successful source status cannot point to a draft Release." >&2
+              exit 1
+            }
+            existing_status="$RUNNER_TEMP/existing-release-status-pre-publish.json"
+            gh api "$source_endpoint?ref=main" --jq '.content' |
+              tr -d '\n' | base64 -d > "$existing_status"
+            jq -e \
+              --arg source_ref "$SOURCE_REF" \
+              --arg version "$RELEASE_VERSION" \
+              --arg tag "$RELEASE_TAG" \
+              --arg apk "$apk_name" \
+              --arg apk_sha256 "$remote_apk_sha256" \
+              --arg release_url "$expected_url" \
+              --arg evidence_sha256 "$remote_evidence_sha256" \
+              '.contract == "alpha110.fixed-source-release.v1" and
+               .status == "success" and .channel == "release" and
+               .source_ref == $source_ref and .version == $version and
+               .tag == $tag and .apk == $apk and
+               .apk_sha256 == $apk_sha256 and
+               .release_url == $release_url and
+               .requirement_evidence_sha256 == $evidence_sha256' \
+              "$existing_status" >/dev/null || {
+                echo "Existing source status does not exactly match the Release." >&2
+                exit 1
+              }
+          fi
+
+          if [[ "$is_draft" == true ]]; then
+            gh release edit "$RELEASE_TAG" --draft=false --latest \
+              --repo "$GITHUB_REPOSITORY"
+          else
+            latest_tag="$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq '.tag_name')"
+            [[ "$latest_tag" == "$RELEASE_TAG" ]] || {
+              echo "Existing published Release is not latest; refusing to mutate it." >&2
+              exit 1
+            }
+          fi
+          gh api "$release_endpoint" --jq '.draft == false' | grep -Fx true
+          gh api "$tag_endpoint" >/dev/null
+          comparison="$(gh api \
+            "repos/$GITHUB_REPOSITORY/compare/$RELEASE_TAG...main" --jq '.status')"
+          [[ "$comparison" == "ahead" || "$comparison" == "identical" ]]
+          latest_tag="$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq '.tag_name')"
+          [[ "$latest_tag" == "$RELEASE_TAG" ]]
+
+          echo "apk_name=$apk_name" >> "$GITHUB_OUTPUT"
+          echo "apk_sha256=$remote_apk_sha256" >> "$GITHUB_OUTPUT"
+          echo "evidence_sha256=$remote_evidence_sha256" >> "$GITHUB_OUTPUT"
 
       - name: Record Release status
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_VERSION: ${{ steps.package.outputs.version }}
           RELEASE_TAG: ${{ steps.package.outputs.tag }}
-          APK_NAME: ${{ steps.package.outputs.apk_name }}
-          APK_SHA256: ${{ steps.package.outputs.apk_sha256 }}
-          EVIDENCE_PATH: ${{ steps.package.outputs.evidence_path }}
+          APK_NAME: ${{ steps.publish.outputs.apk_name }}
+          APK_SHA256: ${{ steps.publish.outputs.apk_sha256 }}
+          EVIDENCE_SHA256: ${{ steps.publish.outputs.evidence_sha256 }}
         shell: bash
         run: |
           set -euo pipefail
           completed_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           release_url="https://github.com/$GITHUB_REPOSITORY/releases/tag/$RELEASE_TAG"
-          evidence_sha256="$(sha256sum "$EVIDENCE_PATH" | awk '{print $1}')"
+          evidence_sha256="$EVIDENCE_SHA256"
           [[ "$APK_SHA256" =~ ^[0-9a-f]{64}$ ]]
           [[ "$evidence_sha256" =~ ^[0-9a-f]{64}$ ]]
           status_file="$RUNNER_TEMP/release-status.json"
@@ -522,9 +954,20 @@ jobs:
               tr -d '\n' | base64 -d > "$existing"
             jq -e \
               --arg source_ref "$SOURCE_REF" \
+              --arg version "$RELEASE_VERSION" \
+              --arg tag "$RELEASE_TAG" \
+              --arg apk "$APK_NAME" \
               --arg apk_sha256 "$APK_SHA256" \
-              '.status == "success" and .source_ref == $source_ref and
-               .apk_sha256 == $apk_sha256' "$existing" >/dev/null
+              --arg release_url "$release_url" \
+              --arg evidence_sha256 "$evidence_sha256" \
+              '.contract == "alpha110.fixed-source-release.v1" and
+               .status == "success" and .channel == "release" and
+               .source_ref == $source_ref and .version == $version and
+               .tag == $tag and .apk == $apk and
+               .apk_sha256 == $apk_sha256 and
+               .release_url == $release_url and
+               .requirement_evidence_sha256 == $evidence_sha256' \
+              "$existing" >/dev/null
           fi
 
           latest_path=".release-status/release-latest.json"
@@ -536,7 +979,4 @@ jobs:
             -f content="$encoded" -f branch=main)
           [[ -z "$current_sha" ]] || args+=(-f sha="$current_sha")
           gh api "${args[@]}" >/dev/null
-      - name: Remove signing key from runner
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/xianxia-release-signing.p12"
+
