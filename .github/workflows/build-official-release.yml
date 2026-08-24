@@ -362,6 +362,7 @@ jobs:
             exit 1
           fi
 
+          python3 tests/alpha110_build_integrity_contract.py "$output_apk"
           sha256sum "$output_apk" > "$output_apk.sha256"
           apk_sha256="$(awk '{print $1}' "$output_apk.sha256")"
           [[ "$apk_sha256" =~ ^[0-9a-f]{64}$ ]]
