@@ -21,7 +21,7 @@ permissions:
 
 concurrency:
   group: xianxia-signed-release-apk
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build-release:
@@ -508,9 +508,37 @@ jobs:
             echo "Release $RELEASE_TAG already exists and will not be mutated. Use a new -rN release_id." >&2
             exit 1
           fi
-          gh release create "$RELEASE_TAG" "${assets[@]}" --target main \
+
+          # 먼저 draft(초안)로 만들고, 공개 자산을 다시 내려받아 무결성을
+          # 확인한 뒤에만 latest 정식 릴리스로 게시한다.
+          gh release create "$RELEASE_TAG" "${assets[@]}" --draft --target main \
             --title "Alpha $RELEASE_VERSION 정식 서명 Release" \
-            --notes-file "$NOTES_PATH" --latest --repo "$GITHUB_REPOSITORY"
+            --notes-file "$NOTES_PATH" --repo "$GITHUB_REPOSITORY"
+
+          verify_dir="$RUNNER_TEMP/release-download-verify"
+          mkdir -p "$verify_dir"
+          gh release download "$RELEASE_TAG" --dir "$verify_dir" \
+            --repo "$GITHUB_REPOSITORY"
+          expected_names="$RUNNER_TEMP/expected-release-assets.txt"
+          actual_names="$RUNNER_TEMP/actual-release-assets.txt"
+          for asset in "$APK_PATH" "$CHECKSUM_PATH" "$CERTIFICATE_PATH" \
+              "$SUMMARY_PATH" "$DETAILS_PATH" "$EVIDENCE_PATH"; do
+            basename "$asset"
+          done | sort > "$expected_names"
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+            --json assets --jq '.assets[].name' | sort > "$actual_names"
+          diff -u "$expected_names" "$actual_names"
+          apk_name="$(basename "$APK_PATH")"
+          checksum_name="$(basename "$CHECKSUM_PATH")"
+          evidence_name="$(basename "$EVIDENCE_PATH")"
+          (cd "$verify_dir" && sha256sum -c "$checksum_name")
+          test "$(sha256sum "$verify_dir/$apk_name" | awk '{print $1}')" = \
+            "$(awk '{print $1}' "$CHECKSUM_PATH")"
+          test "$(sha256sum "$verify_dir/$evidence_name" | awk '{print $1}')" = \
+            "$(sha256sum "$EVIDENCE_PATH" | awk '{print $1}')"
+
+          gh release edit "$RELEASE_TAG" --draft=false --latest \
+            --repo "$GITHUB_REPOSITORY"
 
       - name: Record Release status
         env:
