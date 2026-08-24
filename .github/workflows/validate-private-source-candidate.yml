@@ -229,7 +229,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ./gradlew :app:assembleRelease -PxianxiaAbi=x86_64 --stacktrace --console=plain
           tools="$ANDROID_HOME/build-tools/36.0.0"
           keytool -genkeypair -noprompt \
             -keystore "$RUNNER_TEMP/smoke-release.p12" \
@@ -241,6 +240,19 @@ jobs:
             -keysize 2048 \
             -validity 1 \
             -dname "CN=Xianxia CI Smoke"
+          smoke_certificate_sha256="$(
+            keytool -exportcert \
+              -keystore "$RUNNER_TEMP/smoke-release.p12" \
+              -storetype PKCS12 \
+              -storepass smoke-release \
+              -alias smoke |
+              sha256sum | awk '{print toupper($1)}'
+          )"
+          [[ "$smoke_certificate_sha256" =~ ^[0-9A-F]{64}$ ]]
+          ./gradlew :app:assembleRelease \
+            -PxianxiaAbi=x86_64 \
+            -PxianxiaApprovedCertificateSha256="$smoke_certificate_sha256" \
+            --stacktrace --console=plain
           "$tools/zipalign" -f -P 16 4 \
             app/build/outputs/apk/release/app-release-unsigned.apk \
             "$RUNNER_TEMP/app-release-aligned.apk"
@@ -252,7 +264,13 @@ jobs:
             --key-pass pass:smoke-release \
             --out "$RUNNER_TEMP/app-release-smoke.apk" \
             "$RUNNER_TEMP/app-release-aligned.apk"
-          "$tools/apksigner" verify --verbose "$RUNNER_TEMP/app-release-smoke.apk"
+          "$tools/apksigner" verify --verbose --print-certs             "$RUNNER_TEMP/app-release-smoke.apk" |
+            tee "$RUNNER_TEMP/smoke-signing-certificate.txt"
+          signed_certificate_sha256="$(
+            sed -n 's/^Signer #1 certificate SHA-256 digest: //p'               "$RUNNER_TEMP/smoke-signing-certificate.txt" |
+              head -n 1 | tr '[:lower:]' '[:upper:]'
+          )"
+          [[ "$signed_certificate_sha256" == "$smoke_certificate_sha256" ]]
       - name: Prepare emulator evidence script
         shell: bash
         run: |
