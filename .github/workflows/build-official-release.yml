@@ -210,6 +210,17 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Resolve approved signing certificate
+        shell: bash
+        run: |
+          set -euo pipefail
+          approved_certificate_sha256="$(
+            keytool -exportcert               -keystore "$RUNNER_TEMP/xianxia-release-signing.p12"               -storetype PKCS12               -storepass "$RELEASE_STORE_PASSWORD"               -alias "$RELEASE_KEY_ALIAS" |
+              sha256sum | awk '{print toupper($1)}'
+          )"
+          [[ "$approved_certificate_sha256" =~ ^[0-9A-F]{64}$ ]]
+          echo "XIANXIA_APPROVED_CERTIFICATE_SHA256=$approved_certificate_sha256" >> "$GITHUB_ENV"
+
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
@@ -227,6 +238,7 @@ jobs:
           chmod +x gradlew
           ./gradlew :app:assembleRelease \
             -PxianxiaAbi=arm64-v8a \
+            -PxianxiaApprovedCertificateSha256="$XIANXIA_APPROVED_CERTIFICATE_SHA256" \
             --stacktrace \
             --console=plain \
             --no-daemon
@@ -287,6 +299,14 @@ jobs:
 
           "$tools/zipalign" -c -P 16 -v 4 "$output_apk"
           "$tools/apksigner" verify --verbose --print-certs --min-sdk-version 26 "$output_apk" | tee "$output_dir/signing-certificate.txt"
+          signed_certificate_sha256="$(
+            sed -n 's/^Signer #1 certificate SHA-256 digest: //p'               "$output_dir/signing-certificate.txt" |
+              head -n 1 | tr '[:lower:]' '[:upper:]'
+          )"
+          [[ "$signed_certificate_sha256" == "$XIANXIA_APPROVED_CERTIFICATE_SHA256" ]] || {
+            echo "Built-in approved certificate and signed APK certificate differ." >&2
+            exit 1
+          }
           badging="$($tools/aapt dump badging "$output_apk")"
           grep -F "versionCode='$version_code'" <<< "$badging"
           grep -F "versionName='$version'" <<< "$badging"
@@ -319,7 +339,7 @@ jobs:
             echo "- 디버그 가능: 비활성화"
             echo "- 비공개 CI 전체 회귀·Release 실행 게이트: 통과"
             echo "- 네이티브 Release 최적화: 활성화"
-            echo "- Java 코드 축소·난독화: 비활성화"
+            echo "- Java 코드 축소·난독화: 활성화"
             echo "- 지원 ABI: ARM64 (arm64-v8a)"
             echo "- Android 최소 버전: API 26"
             echo "- 서명 방식: APK Signature Scheme v2/v3"
