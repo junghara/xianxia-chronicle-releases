@@ -112,8 +112,10 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Verify pinned private source
+      - name: Verify pinned private source and main ancestry
         working-directory: source
+        env:
+          GH_TOKEN: ${{ secrets.SOURCE_REPO_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
@@ -124,6 +126,14 @@ jobs:
           actual="$(git rev-parse HEAD)"
           [[ "$actual" == "$SOURCE_REF" ]] || {
             echo "Pinned source mismatch: expected=$SOURCE_REF actual=$actual" >&2
+            exit 1
+          }
+          comparison="$(
+            gh api "repos/$SOURCE_REPOSITORY/compare/$SOURCE_REF...main" \
+              --jq '.status'
+          )"
+          [[ "$comparison" == "ahead" || "$comparison" == "identical" ]] || {
+            echo "Source SHA is not an ancestor of private main: $SOURCE_REF" >&2
             exit 1
           }
 
@@ -199,6 +209,42 @@ jobs:
             exit 1
           }
 
+      - name: Protect immutable Release tag
+        working-directory: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d '\r\n' < VERSION)"
+          release_id="${RELEASE_ID:-$version}"
+          escaped_version="${version//./\\.}"
+          if [[ "$release_id" != "$version" ]] &&
+             [[ ! "$release_id" =~ ^${escaped_version}-r[1-9][0-9]*$ ]]; then
+            echo "release_id must equal VERSION or append -rN to it" >&2
+            exit 1
+          fi
+          tag="v${release_id}"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $tag already exists and is immutable. Use a new -rN release_id." >&2
+            exit 1
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK and NDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;3.22.1"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
       - name: Restore signing key and normalize secret values
         env:
           KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
@@ -250,12 +296,6 @@ jobs:
                   handle.write(f"{name}={value}\n")
           PY
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
       - name: Resolve approved signing certificate
         shell: bash
         run: |
@@ -266,15 +306,6 @@ jobs:
           )"
           [[ "$approved_certificate_sha256" =~ ^[0-9A-F]{64}$ ]]
           echo "XIANXIA_APPROVED_CERTIFICATE_SHA256=$approved_certificate_sha256" >> "$GITHUB_ENV"
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android SDK and NDK
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;3.22.1"
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
 
       - name: Build optimized unsigned Release APK
         working-directory: source
@@ -363,7 +394,7 @@ jobs:
           fi
 
           python3 tests/alpha110_build_integrity_contract.py "$output_apk"
-          sha256sum "$output_apk" > "$output_apk.sha256"
+          (cd "$output_dir" && sha256sum "$apk_name" > "$apk_name.sha256")
           apk_sha256="$(awk '{print $1}' "$output_apk.sha256")"
           [[ "$apk_sha256" =~ ^[0-9a-f]{64}$ ]]
           tag="v${release_id}"
@@ -425,6 +456,17 @@ jobs:
           echo "apk_sha256=$apk_sha256" >> "$GITHUB_OUTPUT"
           echo "notes_path=source/$output_dir/RELEASE_NOTES.md" >> "$GITHUB_OUTPUT"
 
+      - name: Remove signing material before artifact actions
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/xianxia-release-signing.p12"
+          {
+            echo "RELEASE_STORE_PASSWORD="
+            echo "RELEASE_KEY_ALIAS="
+            echo "RELEASE_KEY_PASSWORD="
+          } >> "$GITHUB_ENV"
+
       - name: Upload signed Release artifact
         uses: actions/upload-artifact@v4
         with:
@@ -463,11 +505,12 @@ jobs:
             "$EVIDENCE_PATH#238-requirement released evidence"
           )
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber --repo "$GITHUB_REPOSITORY"
-            gh release edit "$RELEASE_TAG" --title "Alpha $RELEASE_VERSION 정식 서명 Release" --notes-file "$NOTES_PATH" --latest --repo "$GITHUB_REPOSITORY"
-          else
-            gh release create "$RELEASE_TAG" "${assets[@]}" --target main --title "Alpha $RELEASE_VERSION 정식 서명 Release" --notes-file "$NOTES_PATH" --latest --repo "$GITHUB_REPOSITORY"
+            echo "Release $RELEASE_TAG already exists and will not be mutated. Use a new -rN release_id." >&2
+            exit 1
           fi
+          gh release create "$RELEASE_TAG" "${assets[@]}" --target main \
+            --title "Alpha $RELEASE_VERSION 정식 서명 Release" \
+            --notes-file "$NOTES_PATH" --latest --repo "$GITHUB_REPOSITORY"
 
       - name: Record Release status
         env:
@@ -536,7 +579,3 @@ jobs:
             -f content="$encoded" -f branch=main)
           [[ -z "$current_sha" ]] || args+=(-f sha="$current_sha")
           gh api "${args[@]}" >/dev/null
-      - name: Remove signing key from runner
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/xianxia-release-signing.p12"
