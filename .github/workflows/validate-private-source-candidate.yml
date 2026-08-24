@@ -45,6 +45,10 @@ jobs:
   host:
     needs: prepare
     runs-on: ubuntu-latest
+    outputs:
+      performance_sha256: ${{ steps.alpha110_performance.outputs.performance_sha256 }}
+      source_manifest_sha256: ${{ steps.alpha110_performance.outputs.source_manifest_sha256 }}
+      requirement_count: ${{ steps.alpha110_performance.outputs.requirement_count }}
     steps:
       - name: Check out exact private source commit
         uses: actions/checkout@v4
@@ -110,13 +114,29 @@ jobs:
             performance-reference-build/i7-benchmarks.txt \
             performance-reference-build/i0-baseline.txt \
             performance-reference-build/storage-workflow-latency.txt
-      - name: Measure Alpha 1.1.0 fixed-SHA live runtime
+      - id: alpha110_performance
+        name: Measure Alpha 1.1.0 fixed-SHA live runtime
         shell: bash
         run: |
           set -euo pipefail
+          report=build/alpha-1.1.0-live-runtime-performance.json
           ./build/alpha110_live_runtime_benchmark \
             --commit-sha "${{ needs.prepare.outputs.source_ref }}" \
-            | tee build/alpha-1.1.0-live-runtime-performance.json
+            | tee "$report"
+          performance_sha256="$(sha256sum "$report" | awk '{print $1}')"
+          source_manifest_sha256="$(
+            sha256sum data/alpha110/requirement_coverage_manifest.json | awk '{print $1}'
+          )"
+          requirement_count="$(
+            jq -er '.requirement_count' \
+              data/alpha110/requirement_coverage_manifest.json
+          )"
+          [[ "$performance_sha256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$source_manifest_sha256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$requirement_count" == 238 ]]
+          echo "performance_sha256=$performance_sha256" >> "$GITHUB_OUTPUT"
+          echo "source_manifest_sha256=$source_manifest_sha256" >> "$GITHUB_OUTPUT"
+          echo "requirement_count=$requirement_count" >> "$GITHUB_OUTPUT"
       - name: Upload Alpha 1.1.0 performance evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -227,6 +247,8 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      emulator_sha256: ${{ steps.emulator_evidence_hash.outputs.sha256 }}
     steps:
       - name: Check out exact private source commit
         uses: actions/checkout@v4
@@ -488,6 +510,19 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: bash "$RUNNER_TEMP/alpha-1.1.0-emulator-evidence.sh"
+      - id: emulator_evidence_hash
+        name: Hash emulator evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d validation-artifacts
+          evidence_sha256="$(
+            find validation-artifacts -type f -print0 | sort -z |
+              xargs -0 sha256sum | sha256sum | awk '{print $1}'
+          )"
+          [[ "$evidence_sha256" =~ ^[0-9a-f]{64}$ ]]
+          echo "sha256=$evidence_sha256" >> "$GITHUB_OUTPUT"
       - name: Upload emulator screen evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -517,7 +552,21 @@ jobs:
       SANITIZERS_RESULT: ${{ needs.sanitizers.result }}
       ANDROID_RESULT: ${{ needs.android.result }}
       RELEASE_SMOKE_RESULT: ${{ needs['android-release-launch-smoke'].result }}
+      PERFORMANCE_SHA256: ${{ needs.host.outputs.performance_sha256 }}
+      SOURCE_MANIFEST_SHA256: ${{ needs.host.outputs.source_manifest_sha256 }}
+      REQUIREMENT_COUNT: ${{ needs.host.outputs.requirement_count }}
+      EMULATOR_SHA256: ${{ needs['android-release-launch-smoke'].outputs.emulator_sha256 }}
     steps:
+      - name: Check out pinned source for public-safe evidence
+        if: ${{ needs.prepare.result == 'success' }}
+        uses: actions/checkout@v4
+        with:
+          repository: junghara/xianxia-chronicle-AI-simulator
+          ref: ${{ needs.prepare.outputs.source_ref }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+          path: source
+          fetch-depth: 1
+          persist-credentials: false
       - name: Record pinned-source validation status
         shell: bash
         run: |
@@ -532,9 +581,12 @@ jobs:
           done
           completed_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           payload="$(jq -nc \
+            --arg contract "alpha110.fixed-source-validation.v1" \
             --arg status "$status" \
             --arg version "$VERSION" \
             --arg source_ref "$SOURCE_REF" \
+            --arg manifest_sha "$SOURCE_MANIFEST_SHA256" \
+            --argjson requirement_count "${REQUIREMENT_COUNT:-0}" \
             --arg prepare "$PREPARE_RESULT" \
             --arg host "$HOST_RESULT" \
             --arg sanitizers "$SANITIZERS_RESULT" \
@@ -542,12 +594,90 @@ jobs:
             --arg release_smoke "$RELEASE_SMOKE_RESULT" \
             --arg run_id "$GITHUB_RUN_ID" \
             --arg completed_at "$completed_at" \
-            '{status:$status,version:$version,source_ref:$source_ref,workflow_run_id:$run_id,completed_at:$completed_at,jobs:{prepare:$prepare,host:$host,sanitizers:$sanitizers,android:$android,release_smoke:$release_smoke}}')"
-          status_path=".validation-status/latest.json"
-          endpoint="repos/$GITHUB_REPOSITORY/contents/$status_path"
-          encoded="$(printf '%s\n' "$payload" | base64 -w 0)"
-          current_sha="$(gh api "$endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
-          args=(--method PUT "$endpoint" -f message="Record source validation $VERSION" -f content="$encoded" -f branch=main)
-          [[ -z "$current_sha" ]] || args+=(-f sha="$current_sha")
-          gh api "${args[@]}" >/dev/null
-          [[ "$status" == "success" ]]
+            --arg performance_name "alpha-1.1.0-performance-$SOURCE_REF" \
+            --arg performance_sha "$PERFORMANCE_SHA256" \
+            --arg emulator_name "alpha-1.1.0-emulator-screens-$SOURCE_REF" \
+            --arg emulator_sha "$EMULATOR_SHA256" \
+            '{contract:$contract,status:$status,version:$version,
+              source_ref:$source_ref,source_manifest_sha256:$manifest_sha,
+              requirement_count:$requirement_count,workflow_run_id:$run_id,
+              completed_at:$completed_at,
+              jobs:{prepare:$prepare,host:$host,sanitizers:$sanitizers,
+                android:$android,release_smoke:$release_smoke},
+              artifacts:{
+                performance:{name:$performance_name,sha256:$performance_sha},
+                emulator:{name:$emulator_name,sha256:$emulator_sha}}}')"
+          status_file="$RUNNER_TEMP/validation-status.json"
+          printf '%s\n' "$payload" > "$status_file"
+
+          # latest는 편의 포인터일 뿐이다. 릴리스 게이트는 절대 이 파일을 읽지 않는다.
+          latest_path=".validation-status/latest.json"
+          latest_endpoint="repos/$GITHUB_REPOSITORY/contents/$latest_path"
+          latest_encoded="$(base64 -w 0 "$status_file")"
+          latest_sha="$(gh api "$latest_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          latest_args=(--method PUT "$latest_endpoint"
+            -f message="Record source validation $VERSION"
+            -f content="$latest_encoded" -f branch=main)
+          [[ -z "$latest_sha" ]] || latest_args+=(-f sha="$latest_sha")
+          gh api "${latest_args[@]}" >/dev/null
+
+          [[ "$status" == "success" ]] || exit 1
+          [[ "$SOURCE_REF" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$SOURCE_MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$PERFORMANCE_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$EMULATOR_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$REQUIREMENT_COUNT" == 238 ]]
+
+          # 첫 성공만 source SHA별 불변 상태가 된다. 후속 실행은 덮어쓰지 않고
+          # 이미 고정된 파일의 핵심 계약을 검증해 재사용한다.
+          source_status_path=".validation-status/by-source/$SOURCE_REF.json"
+          source_status_endpoint="repos/$GITHUB_REPOSITORY/contents/$source_status_path"
+          source_status_sha="$(gh api "$source_status_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          canonical_status="$RUNNER_TEMP/canonical-validation-status.json"
+          if [[ -n "$source_status_sha" ]]; then
+            gh api "$source_status_endpoint?ref=main" --jq '.content' |
+              tr -d '\n' | base64 -d > "$canonical_status"
+            jq -e \
+              --arg source_ref "$SOURCE_REF" \
+              --arg manifest_sha "$SOURCE_MANIFEST_SHA256" \
+              '.contract == "alpha110.fixed-source-validation.v1" and
+               .status == "success" and .version == "1.1.0" and
+               .source_ref == $source_ref and
+               .source_manifest_sha256 == $manifest_sha and
+               .requirement_count == 238 and
+               ([.jobs[]] | all(. == "success")) and
+               (.artifacts.performance.sha256 | test("^[0-9a-f]{64}$")) and
+               (.artifacts.emulator.sha256 | test("^[0-9a-f]{64}$"))' \
+              "$canonical_status" >/dev/null
+          else
+            cp "$status_file" "$canonical_status"
+            source_status_encoded="$(base64 -w 0 "$canonical_status")"
+            gh api --method PUT "$source_status_endpoint" \
+              -f message="Pin successful validation for $SOURCE_REF" \
+              -f content="$source_status_encoded" -f branch=main >/dev/null
+          fi
+
+          evidence_file="$RUNNER_TEMP/alpha-1.1.0-same-sha-evidence.json"
+          python3 source/scripts/stamp_alpha110_requirement_evidence.py \
+            --manifest source/data/alpha110/requirement_coverage_manifest.json \
+            --validation-status "$canonical_status" \
+            --source-sha "$SOURCE_REF" \
+            --state SAME_SHA_VERIFIED \
+            --output "$evidence_file"
+          evidence_path=".validation-evidence/by-source/$SOURCE_REF.json"
+          evidence_endpoint="repos/$GITHUB_REPOSITORY/contents/$evidence_path"
+          evidence_sha="$(gh api "$evidence_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          if [[ -n "$evidence_sha" ]]; then
+            existing_evidence="$RUNNER_TEMP/existing-same-sha-evidence.json"
+            gh api "$evidence_endpoint?ref=main" --jq '.content' |
+              tr -d '\n' | base64 -d > "$existing_evidence"
+            cmp -s "$evidence_file" "$existing_evidence" || {
+              echo "Immutable same-SHA evidence mismatch for $SOURCE_REF" >&2
+              exit 1
+            }
+          else
+            evidence_encoded="$(base64 -w 0 "$evidence_file")"
+            gh api --method PUT "$evidence_endpoint" \
+              -f message="Record 238-row same-SHA evidence for $SOURCE_REF" \
+              -f content="$evidence_encoded" -f branch=main >/dev/null
+          fi
