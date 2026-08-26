@@ -198,7 +198,12 @@ jobs:
         env:
           ASAN_OPTIONS: detect_leaks=1
           UBSAN_OPTIONS: print_stacktrace=1
-        run: ctest --test-dir build-sanitized --output-on-failure
+        # Release 벽시계 p99 게이트는 Host Release job에서 실행한다.
+        # ASan/UBSan Debug 계측 시간은 production 성능 증거가 아니므로 해당
+        # 테스트 한 개만 제외하고 나머지 전체 기능 회귀를 소독기에서 실행한다.
+        run: >-
+          ctest --test-dir build-sanitized --output-on-failure
+          -E '^alpha110_live_runtime_performance_tests$'
 
   android:
     needs: prepare
