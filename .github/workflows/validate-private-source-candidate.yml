@@ -78,8 +78,644 @@ jobs:
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - name: Build Release host targets
         run: cmake --build build -j2
-      - name: Run complete host regression suite
-        run: ctest --test-dir build --output-on-failure
+      - name: Run host regression suite
+        # The fixed-SHA Release wall-clock gate runs once below and publishes
+        # its JSON evidence. Avoid running the same 10,000 x 1,000 benchmark
+        # inside CTest first, where shared-runner noise can abort before the
+        # auditable report is written.
+        run: >-
+          ctest --test-dir build --output-on-failure
+          -E '^alpha110_live_runtime_performance_tests
+      - name: Check out same-runner performance reference
+        uses: actions/checkout@v4
+        with:
+          repository: junghara/xianxia-chronicle-AI-simulator
+          ref: ${{ needs.prepare.outputs.performance_ref }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+          persist-credentials: false
+          path: performance-reference
+      - name: Configure same-runner performance reference
+        run: >-
+          cmake -S performance-reference -B performance-reference-build
+          -DCMAKE_BUILD_TYPE=Release
+      - name: Build same-runner performance reference
+        run: >-
+          cmake --build performance-reference-build -j2 --target
+          performance_baseline xianxia_b0_b7_benchmarks
+          storage_workflow_latency_micro
+      - name: Measure same-runner performance reference
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./performance-reference-build/performance_baseline |
+            tee performance-reference-build/i0-baseline.txt
+          ./performance-reference-build/storage_workflow_latency_micro |
+            tee performance-reference-build/storage-workflow-latency.txt
+          ./performance-reference-build/xianxia_b0_b7_benchmarks |
+            tee performance-reference-build/i7-benchmarks.txt
+      - name: Run performance baselines and gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./build/performance_baseline | tee build/i0-baseline.txt
+          if [[ -x ./build/alpha_108_observer_performance ]]; then
+            ./build/alpha_108_observer_performance |
+              tee build/alpha-1.1.0-observer-performance.txt
+          fi
+          ./build/storage_workflow_latency_micro |
+            tee build/storage-workflow-latency.txt
+          ./build/xianxia_b0_b7_benchmarks | tee build/i7-benchmarks.txt
+          python3 tests/i7_benchmark_contract.py \
+            build/i7-benchmarks.txt \
+            build/i0-baseline.txt \
+            tests/fixtures/current-b0-b7-v1.tsv \
+            build/storage-workflow-latency.txt \
+            performance-reference-build/i7-benchmarks.txt \
+            performance-reference-build/i0-baseline.txt \
+            performance-reference-build/storage-workflow-latency.txt
+      - id: alpha110_performance
+        name: Measure Alpha 1.1.0 fixed-SHA live runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          report=build/alpha-1.1.0-live-runtime-performance.json
+          ./build/alpha110_live_runtime_benchmark \
+            --commit-sha "${{ needs.prepare.outputs.source_ref }}" \
+            | tee "$report"
+          performance_sha256="$(sha256sum "$report" | awk '{print $1}')"
+          source_manifest_sha256="$(
+            sha256sum data/alpha110/requirement_coverage_manifest.json | awk '{print $1}'
+          )"
+          requirement_count="$(
+            jq -er '.requirement_count' \
+              data/alpha110/requirement_coverage_manifest.json
+          )"
+          [[ "$performance_sha256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$source_manifest_sha256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$requirement_count" == 238 ]]
+          echo "performance_sha256=$performance_sha256" >> "$GITHUB_OUTPUT"
+          echo "source_manifest_sha256=$source_manifest_sha256" >> "$GITHUB_OUTPUT"
+          echo "requirement_count=$requirement_count" >> "$GITHUB_OUTPUT"
+      - name: Upload Alpha 1.1.0 performance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alpha-1.1.0-performance-${{ needs.prepare.outputs.source_ref }}
+          path: build/alpha-1.1.0-live-runtime-performance.json
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Run inherited and Alpha 1.1.0 structural contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/architecture_contract.py
+          python3 tests/i8_release_candidate_contract.py
+          python3 tests/android_startup_contract.py
+          python3 tests/alpha_106_cleanup_contract.py
+          python3 tests/release_runtime_parity_contract.py
+          python3 tests/alpha110_requirement_coverage_test.py
+          python3 tests/alpha110_sqlite_schema_contract.py
+          python3 tests/alpha110_android_sqlite_contract.py
+          python3 tests/alpha110_android_health_contract.py
+          python3 tests/alpha110_build_integrity_contract.py
+          python3 tests/alpha110_unified_search_contract.py
+          python3 tests/alpha110_single_authority_contract.py
+          python3 tests/alpha110_release_contract.py
+
+  sanitizers:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact private source commit
+        uses: actions/checkout@v4
+        with:
+          repository: junghara/xianxia-chronicle-AI-simulator
+          ref: ${{ needs.prepare.outputs.source_ref }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+          persist-credentials: false
+      - name: Configure ASan and UBSan
+        run: >-
+          cmake -S . -B build-sanitized -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
+          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+      - name: Build sanitizer targets
+        run: cmake --build build-sanitized -j2
+      - name: Run complete sanitizer suite
+        env:
+          ASAN_OPTIONS: detect_leaks=1
+          UBSAN_OPTIONS: print_stacktrace=1
+        # Release 벽시계 p99 게이트는 Host Release job에서 실행한다.
+        # ASan/UBSan Debug 계측 시간은 production 성능 증거가 아니므로 해당
+        # 테스트 한 개만 제외하고 나머지 전체 기능 회귀를 소독기에서 실행한다.
+        run: >-
+          ctest --test-dir build-sanitized --output-on-failure
+          -E '^alpha110_live_runtime_performance_tests$'
+
+  android:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact private source commit
+        uses: actions/checkout@v4
+        with:
+          repository: junghara/xianxia-chronicle-AI-simulator
+          ref: ${{ needs.prepare.outputs.source_ref }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK and NDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;3.22.1"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build ARM64 Debug and Release APKs
+        run: >-
+          ./gradlew :app:assembleDebug :app:assembleRelease
+          -PxianxiaAbi=arm64-v8a --stacktrace --console=plain
+      - name: Verify ARM64 APK contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${{ needs.prepare.outputs.version }}"
+          IFS='.' read -r major minor patch <<< "$version"
+          version_code=$((major * 1000000 + minor * 1000 + patch))
+          debug_apk="app/build/outputs/apk/debug/app-debug.apk"
+          release_apk="app/build/outputs/apk/release/app-release-unsigned.apk"
+          tools="$ANDROID_HOME/build-tools/36.0.0"
+          "$tools/apksigner" verify --verbose "$debug_apk"
+          debug_badging="$($tools/aapt dump badging "$debug_apk")"
+          release_badging="$($tools/aapt dump badging "$release_apk")"
+          for badging in "$debug_badging" "$release_badging"; do
+            grep -F "versionCode='$version_code'" <<< "$badging"
+            grep -F "versionName='$version'" <<< "$badging"
+            grep -F "native-code: 'arm64-v8a'" <<< "$badging"
+          done
+          grep -F "application-debuggable" <<< "$debug_badging"
+          ! grep -Fq "application-debuggable" <<< "$release_badging"
+          python3 tests/alpha110_build_integrity_contract.py "$debug_apk"
+          python3 tests/alpha110_build_integrity_contract.py "$release_apk"
+      - name: Build x86_64 Debug and Release APKs
+        run: >-
+          ./gradlew :app:assembleDebug :app:assembleRelease
+          -PxianxiaAbi=x86_64 --stacktrace --console=plain
+      - name: Verify x86_64 native ABI
+        shell: bash
+        run: |
+          set -euo pipefail
+          tools="$ANDROID_HOME/build-tools/36.0.0"
+          for apk in app/build/outputs/apk/debug/app-debug.apk \
+                     app/build/outputs/apk/release/app-release-unsigned.apk; do
+            badging="$($tools/aapt dump badging "$apk")"
+            grep -F "native-code: 'x86_64'" <<< "$badging"
+          done
+
+  android-release-launch-smoke:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      emulator_sha256: ${{ steps.emulator_evidence_hash.outputs.sha256 }}
+    steps:
+      - name: Check out exact private source commit
+        uses: actions/checkout@v4
+        with:
+          repository: junghara/xianxia-chronicle-AI-simulator
+          ref: ${{ needs.prepare.outputs.source_ref }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+          persist-credentials: false
+      - name: Enable KVM access
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK and NDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;3.22.1"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build and temporarily sign x86_64 Release smoke APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          tools="$ANDROID_HOME/build-tools/36.0.0"
+          keytool -genkeypair -noprompt \
+            -keystore "$RUNNER_TEMP/smoke-release.p12" \
+            -storetype PKCS12 \
+            -storepass smoke-release \
+            -keypass smoke-release \
+            -alias smoke \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 1 \
+            -dname "CN=Xianxia CI Smoke"
+          smoke_certificate_sha256="$(
+            keytool -exportcert \
+              -keystore "$RUNNER_TEMP/smoke-release.p12" \
+              -storetype PKCS12 \
+              -storepass smoke-release \
+              -alias smoke |
+              sha256sum | awk '{print toupper($1)}'
+          )"
+          [[ "$smoke_certificate_sha256" =~ ^[0-9A-F]{64}$ ]]
+          ./gradlew :app:assembleRelease \
+            -PxianxiaAbi=x86_64 \
+            -PxianxiaApprovedCertificateSha256="$smoke_certificate_sha256" \
+            --stacktrace --console=plain
+          "$tools/zipalign" -f -P 16 4 \
+            app/build/outputs/apk/release/app-release-unsigned.apk \
+            "$RUNNER_TEMP/app-release-aligned.apk"
+          "$tools/apksigner" sign \
+            --ks "$RUNNER_TEMP/smoke-release.p12" \
+            --ks-type PKCS12 \
+            --ks-key-alias smoke \
+            --ks-pass pass:smoke-release \
+            --key-pass pass:smoke-release \
+            --out "$RUNNER_TEMP/app-release-smoke.apk" \
+            "$RUNNER_TEMP/app-release-aligned.apk"
+          "$tools/apksigner" verify --verbose --print-certs             "$RUNNER_TEMP/app-release-smoke.apk" |
+            tee "$RUNNER_TEMP/smoke-signing-certificate.txt"
+          signed_certificate_sha256="$(
+            sed -n 's/^Signer #1 certificate SHA-256 digest: //p'               "$RUNNER_TEMP/smoke-signing-certificate.txt" |
+              head -n 1 | tr '[:lower:]' '[:upper:]'
+          )"
+          [[ "$signed_certificate_sha256" == "$smoke_certificate_sha256" ]]
+      - name: Prepare emulator evidence script
+        shell: bash
+        run: |
+          cat > "$RUNNER_TEMP/alpha-1.1.0-emulator-evidence.sh" <<'SCRIPT'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          mkdir -p validation-artifacts
+          original_hide_error_dialogs="$(
+            adb shell settings get global hide_error_dialogs 2>/dev/null | tr -d '\r' || true
+          )"
+          cleanup() {
+            adb shell wm size reset >/dev/null 2>&1 || true
+            adb shell wm density reset >/dev/null 2>&1 || true
+            adb shell settings put system font_scale 1.0 >/dev/null 2>&1 || true
+            case "$original_hide_error_dialogs" in
+              ""|null)
+                adb shell settings delete global hide_error_dialogs >/dev/null 2>&1 || true
+                ;;
+              *)
+                adb shell settings put global hide_error_dialogs \
+                  "$original_hide_error_dialogs" >/dev/null 2>&1 || true
+                ;;
+            esac
+          }
+          capture_screen() {
+            local output="$1"
+            local remote=/sdcard/alpha110-active-window.xml
+            local active="$RUNNER_TEMP/alpha110-active-window.xml"
+            test -n "$(adb shell pidof com.junghara.xianxiachronicle | tr -d '\r')"
+            adb shell dumpsys activity activities \
+              | grep -E 'mResumedActivity|topResumedActivity' \
+              | grep com.junghara.xianxiachronicle
+            adb shell uiautomator dump "$remote" >/dev/null
+            adb exec-out cat "$remote" > "$active"
+            if grep -Eiq \
+              'android:id/aerr_|isn.t responding|is not responding|keeps stopping|has stopped|응답하지 않|계속 중단' \
+              "$active"; then
+              cp "$active" validation-artifacts/system-error-overlay.xml
+              adb shell dumpsys window windows \
+                > validation-artifacts/system-error-windows.txt || true
+              echo 'System error/ANR overlay blocks UI evidence.' >&2
+              return 1
+            fi
+            adb exec-out screencap -p > "$output"
+            test -s "$output"
+          }
+          tap_dialog_button() {
+            local text="$1"
+            local remote=/sdcard/alpha110-dialog.xml
+            local active="$RUNNER_TEMP/alpha110-dialog.xml"
+            local button_x
+            local button_y
+            adb shell uiautomator dump "$remote" >/dev/null
+            adb exec-out cat "$remote" > "$active"
+            read -r button_x button_y < <(
+              python3 -c 'import re, sys, xml.etree.ElementTree as ET; root = ET.parse(sys.argv[1]).getroot(); node = next(node for node in root.iter("node") if node.get("text") == sys.argv[2] and node.get("clickable") == "true"); x1, y1, x2, y2 = map(int, re.findall(r"\d+", node.get("bounds"))); print((x1 + x2) // 2, (y1 + y2) // 2)' "$active" "$text"
+            )
+            adb shell input tap "$button_x" "$button_y"
+          }
+          trap cleanup EXIT
+          adb shell settings put global hide_error_dialogs 1
+          for launcher in com.google.android.apps.nexuslauncher com.android.launcher3; do
+            adb shell am force-stop "$launcher" >/dev/null 2>&1 || true
+          done
+          adb shell wm size 360x640
+          adb shell wm density 160
+          adb shell settings put system font_scale 1.3
+          adb shell cmd uimode night yes
+          adb install -r "$RUNNER_TEMP/app-release-smoke.apk"
+          adb logcat -c
+          adb shell am force-stop com.junghara.xianxiachronicle
+          adb shell am start -W -n com.junghara.xianxiachronicle/.MainActivity
+          sleep 6
+          test -n "$(adb shell pidof com.junghara.xianxiachronicle | tr -d '\r')"
+          adb shell input tap 324 600
+          sleep 2
+          adb shell input tap 54 298
+          sleep 2
+          adb shell uiautomator dump /sdcard/paused-settings.xml >/dev/null
+          adb pull /sdcard/paused-settings.xml \
+            validation-artifacts/paused-settings.xml >/dev/null
+          grep -F "설정 · 정지" validation-artifacts/paused-settings.xml
+          adb shell input tap 36 600
+          sleep 2
+          adb shell uiautomator dump /sdcard/paused-world.xml >/dev/null
+          adb pull /sdcard/paused-world.xml \
+            validation-artifacts/paused-world.xml >/dev/null
+          grep -F "세계 · 정지" validation-artifacts/paused-world.xml
+          adb shell dumpsys activity activities | grep -E "mResumedActivity|topResumedActivity" | grep com.junghara.xianxiachronicle
+          capture_screen validation-artifacts/world-enlarged-dark.png
+          tap_y=600
+          for entry in "chronicle:108" "agents:180" "ranking:252" "settings:324"; do
+            name="${entry%%:*}"
+            tap_x="${entry##*:}"
+            adb shell input tap "$tap_x" "$tap_y"
+            sleep 2
+            capture_screen "validation-artifacts/$name-enlarged-dark.png"
+          done
+          adb shell input tap 180 "$tap_y"
+          sleep 2
+          # 360x640, 130% 글꼴에서는 6개 정본 요약 카드가 검색 진입점을
+          # 화면 아래로 밀어낸다. 같은 고정 환경에서 먼저 300dp 스크롤한 뒤
+          # 표시된 검색 버튼 중앙을 눌러 대화상자 증거를 수집한다.
+          adb shell input swipe 180 520 180 220 700
+          sleep 2
+          capture_screen validation-artifacts/search-entrypoint-enlarged-dark.png
+          adb shell input tap 180 455
+          sleep 2
+          adb shell uiautomator dump /sdcard/search-dialog.xml
+          adb pull /sdcard/search-dialog.xml validation-artifacts/search-dialog.xml
+          grep -F "통합 검색" validation-artifacts/search-dialog.xml
+          capture_screen validation-artifacts/search-dialog-enlarged-dark.png
+          adb shell input keyevent 4
+          adb shell input keyevent 4
+          sleep 2
+          adb shell input tap 180 "$tap_y"
+          sleep 2
+          adb shell input tap 180 470
+          sleep 2
+          adb shell input swipe 180 540 180 240 8000
+          sleep 3
+          capture_screen \
+            validation-artifacts/agent-overview-selected-enlarged-dark.png
+
+          for entry in \
+            "cultivation:113:300" "traits:180:300" \
+            "ai:247:300" "records:314:300"; do
+            name="${entry%%:*}"
+            coordinates="${entry#*:}"
+            tab_x="${coordinates%%:*}"
+            tab_y="${coordinates##*:}"
+            adb shell input tap "$tab_x" "$tab_y"
+            sleep 2
+            adb shell input swipe 180 540 180 240 8000
+            sleep 3
+            capture_screen \
+              "validation-artifacts/agent-$name-selected-enlarged-dark.png"
+          done
+
+          adb shell input tap 324 "$tap_y"
+          sleep 2
+          for _ in 1 2 3 4 5 6; do
+            adb shell input swipe 180 500 180 180 250
+            sleep 1
+          done
+          capture_screen validation-artifacts/settings-reset-enlarged-dark.png
+          adb shell input tap 180 494
+          sleep 2
+          adb shell uiautomator dump /sdcard/reset-cancel-dialog.xml >/dev/null
+          adb pull /sdcard/reset-cancel-dialog.xml \
+            validation-artifacts/reset-cancel-dialog.xml >/dev/null
+          grep -F 'text="새 세계 시작"' \
+            validation-artifacts/reset-cancel-dialog.xml
+          grep -F 'text="취소"' validation-artifacts/reset-cancel-dialog.xml
+          capture_screen validation-artifacts/reset-cancel-dialog-enlarged-dark.png
+          tap_dialog_button "취소"
+          sleep 2
+          capture_screen validation-artifacts/settings-after-reset-cancel-enlarged-dark.png
+
+          adb shell input tap 180 494
+          sleep 2
+          adb shell uiautomator dump /sdcard/reset-confirm-dialog.xml >/dev/null
+          adb pull /sdcard/reset-confirm-dialog.xml \
+            validation-artifacts/reset-confirm-dialog.xml >/dev/null
+          grep -F 'text="새 세계 시작"' \
+            validation-artifacts/reset-confirm-dialog.xml
+          capture_screen validation-artifacts/reset-confirm-dialog-enlarged-dark.png
+          tap_dialog_button "새 세계 시작"
+          sleep 6
+          adb shell input tap 36 "$tap_y"
+          sleep 2
+          capture_screen validation-artifacts/world-after-reset-enlarged-dark.png
+
+          adb shell settings put system font_scale 1.0
+          adb shell cmd uimode night no
+          adb shell am force-stop com.junghara.xianxiachronicle
+          adb shell am start -W -n com.junghara.xianxiachronicle/.MainActivity
+          sleep 6
+          adb shell input tap 36 "$tap_y"
+          sleep 2
+          capture_screen validation-artifacts/world-light.png
+          echo "Verify Release lifecycle restart"
+          adb shell am force-stop com.junghara.xianxiachronicle
+          adb shell am start -W -n com.junghara.xianxiachronicle/.MainActivity
+          sleep 10
+          test -n "$(adb shell pidof com.junghara.xianxiachronicle | tr -d '\r')"
+          adb shell dumpsys activity activities | grep -E "mResumedActivity|topResumedActivity" | grep com.junghara.xianxiachronicle
+          ! adb logcat -d | grep -E "FATAL EXCEPTION|Fatal signal|UnsatisfiedLinkError" | grep com.junghara.xianxiachronicle
+          SCRIPT
+          chmod +x "$RUNNER_TEMP/alpha-1.1.0-emulator-evidence.sh"
+      - name: Boot emulator and capture Release UI evidence
+        uses: ReactiveCircus/android-emulator-runner@v2.38.0
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: bash "$RUNNER_TEMP/alpha-1.1.0-emulator-evidence.sh"
+      - id: emulator_evidence_hash
+        name: Hash emulator evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d validation-artifacts
+          evidence_sha256="$(
+            find validation-artifacts -type f -print0 | sort -z |
+              xargs -0 sha256sum | sha256sum | awk '{print $1}'
+          )"
+          [[ "$evidence_sha256" =~ ^[0-9a-f]{64}$ ]]
+          echo "sha256=$evidence_sha256" >> "$GITHUB_OUTPUT"
+      - name: Upload emulator screen evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alpha-1.1.0-emulator-screens-${{ needs.prepare.outputs.source_ref }}
+          path: validation-artifacts
+          if-no-files-found: error
+          retention-days: 90
+  record:
+    name: record-validation-status
+    if: ${{ always() }}
+    needs:
+      - prepare
+      - host
+      - sanitizers
+      - android
+      - android-release-launch-smoke
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SOURCE_REF: ${{ needs.prepare.outputs.source_ref }}
+      VERSION: ${{ needs.prepare.outputs.version }}
+      PREPARE_RESULT: ${{ needs.prepare.result }}
+      HOST_RESULT: ${{ needs.host.result }}
+      SANITIZERS_RESULT: ${{ needs.sanitizers.result }}
+      ANDROID_RESULT: ${{ needs.android.result }}
+      RELEASE_SMOKE_RESULT: ${{ needs['android-release-launch-smoke'].result }}
+      PERFORMANCE_SHA256: ${{ needs.host.outputs.performance_sha256 }}
+      SOURCE_MANIFEST_SHA256: ${{ needs.host.outputs.source_manifest_sha256 }}
+      REQUIREMENT_COUNT: ${{ needs.host.outputs.requirement_count }}
+      EMULATOR_SHA256: ${{ needs['android-release-launch-smoke'].outputs.emulator_sha256 }}
+    steps:
+      - name: Check out pinned source for public-safe evidence
+        if: ${{ needs.prepare.result == 'success' }}
+        uses: actions/checkout@v4
+        with:
+          repository: junghara/xianxia-chronicle-AI-simulator
+          ref: ${{ needs.prepare.outputs.source_ref }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+          path: source
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Record pinned-source validation status
+        shell: bash
+        run: |
+          set -euo pipefail
+          status=success
+          for result in \
+            "$PREPARE_RESULT" "$HOST_RESULT" "$SANITIZERS_RESULT" \
+            "$ANDROID_RESULT" "$RELEASE_SMOKE_RESULT"; do
+            if [[ "$result" != "success" ]]; then
+              status=failure
+            fi
+          done
+          completed_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          payload="$(jq -nc \
+            --arg contract "alpha110.fixed-source-validation.v1" \
+            --arg status "$status" \
+            --arg version "$VERSION" \
+            --arg source_ref "$SOURCE_REF" \
+            --arg manifest_sha "$SOURCE_MANIFEST_SHA256" \
+            --argjson requirement_count "${REQUIREMENT_COUNT:-0}" \
+            --arg prepare "$PREPARE_RESULT" \
+            --arg host "$HOST_RESULT" \
+            --arg sanitizers "$SANITIZERS_RESULT" \
+            --arg android "$ANDROID_RESULT" \
+            --arg release_smoke "$RELEASE_SMOKE_RESULT" \
+            --arg run_id "$GITHUB_RUN_ID" \
+            --arg completed_at "$completed_at" \
+            --arg performance_name "alpha-1.1.0-performance-$SOURCE_REF" \
+            --arg performance_sha "$PERFORMANCE_SHA256" \
+            --arg emulator_name "alpha-1.1.0-emulator-screens-$SOURCE_REF" \
+            --arg emulator_sha "$EMULATOR_SHA256" \
+            '{contract:$contract,status:$status,version:$version,
+              source_ref:$source_ref,source_manifest_sha256:$manifest_sha,
+              requirement_count:$requirement_count,workflow_run_id:$run_id,
+              completed_at:$completed_at,
+              jobs:{prepare:$prepare,host:$host,sanitizers:$sanitizers,
+                android:$android,release_smoke:$release_smoke},
+              artifacts:{
+                performance:{name:$performance_name,sha256:$performance_sha},
+                emulator:{name:$emulator_name,sha256:$emulator_sha}}}')"
+          status_file="$RUNNER_TEMP/validation-status.json"
+          printf '%s\n' "$payload" > "$status_file"
+
+          # latest는 편의 포인터일 뿐이다. 릴리스 게이트는 절대 이 파일을 읽지 않는다.
+          latest_path=".validation-status/latest.json"
+          latest_endpoint="repos/$GITHUB_REPOSITORY/contents/$latest_path"
+          latest_encoded="$(base64 -w 0 "$status_file")"
+          latest_sha="$(gh api "$latest_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          latest_args=(--method PUT "$latest_endpoint"
+            -f message="Record source validation $VERSION"
+            -f content="$latest_encoded" -f branch=main)
+          [[ -z "$latest_sha" ]] || latest_args+=(-f sha="$latest_sha")
+          gh api "${latest_args[@]}" >/dev/null
+
+          [[ "$status" == "success" ]] || exit 1
+          [[ "$SOURCE_REF" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$SOURCE_MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$PERFORMANCE_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$EMULATOR_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$REQUIREMENT_COUNT" == 238 ]]
+
+          # 첫 성공만 source SHA별 불변 상태가 된다. 후속 실행은 덮어쓰지 않고
+          # 이미 고정된 파일의 핵심 계약을 검증해 재사용한다.
+          source_status_path=".validation-status/by-source/$SOURCE_REF.json"
+          source_status_endpoint="repos/$GITHUB_REPOSITORY/contents/$source_status_path"
+          source_status_sha="$(gh api "$source_status_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          canonical_status="$RUNNER_TEMP/canonical-validation-status.json"
+          if [[ -n "$source_status_sha" ]]; then
+            gh api "$source_status_endpoint?ref=main" --jq '.content' |
+              tr -d '\n' | base64 -d > "$canonical_status"
+            jq -e \
+              --arg source_ref "$SOURCE_REF" \
+              --arg manifest_sha "$SOURCE_MANIFEST_SHA256" \
+              '.contract == "alpha110.fixed-source-validation.v1" and
+               .status == "success" and .version == "1.1.0" and
+               .source_ref == $source_ref and
+               .source_manifest_sha256 == $manifest_sha and
+               .requirement_count == 238 and
+               ([.jobs[]] | all(. == "success")) and
+               (.artifacts.performance.sha256 | test("^[0-9a-f]{64}$")) and
+               (.artifacts.emulator.sha256 | test("^[0-9a-f]{64}$"))' \
+              "$canonical_status" >/dev/null
+          else
+            cp "$status_file" "$canonical_status"
+            source_status_encoded="$(base64 -w 0 "$canonical_status")"
+            gh api --method PUT "$source_status_endpoint" \
+              -f message="Pin successful validation for $SOURCE_REF" \
+              -f content="$source_status_encoded" -f branch=main >/dev/null
+          fi
+
+          evidence_file="$RUNNER_TEMP/alpha-1.1.0-same-sha-evidence.json"
+          python3 source/scripts/stamp_alpha110_requirement_evidence.py \
+            --manifest source/data/alpha110/requirement_coverage_manifest.json \
+            --validation-status "$canonical_status" \
+            --source-sha "$SOURCE_REF" \
+            --state SAME_SHA_VERIFIED \
+            --output "$evidence_file"
+          evidence_path=".validation-evidence/by-source/$SOURCE_REF.json"
+          evidence_endpoint="repos/$GITHUB_REPOSITORY/contents/$evidence_path"
+          evidence_sha="$(gh api "$evidence_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          if [[ -n "$evidence_sha" ]]; then
+            existing_evidence="$RUNNER_TEMP/existing-same-sha-evidence.json"
+            gh api "$evidence_endpoint?ref=main" --jq '.content' |
+              tr -d '\n' | base64 -d > "$existing_evidence"
+            cmp -s "$evidence_file" "$existing_evidence" || {
+              echo "Immutable same-SHA evidence mismatch for $SOURCE_REF" >&2
+              exit 1
+            }
+          else
+            evidence_encoded="$(base64 -w 0 "$evidence_file")"
+            gh api --method PUT "$evidence_endpoint" \
+              -f message="Record 238-row same-SHA evidence for $SOURCE_REF" \
+              -f content="$evidence_encoded" -f branch=main >/dev/null
+          fi
+
       - name: Check out same-runner performance reference
         uses: actions/checkout@v4
         with:
