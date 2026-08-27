@@ -78,8 +78,14 @@ jobs:
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - name: Build Release host targets
         run: cmake --build build -j2
-      - name: Run complete host regression suite
-        run: ctest --test-dir build --output-on-failure
+      - name: Run host regression suite
+        # The fixed-SHA Release wall-clock gate runs once below and publishes
+        # its JSON evidence. Avoid running the same 10,000 x 1,000 benchmark
+        # inside CTest first, where shared-runner noise can abort before the
+        # auditable report is written.
+        run: >-
+          ctest --test-dir build --output-on-failure
+          -E '^alpha110_live_runtime_performance_tests$'
       - name: Check out same-runner performance reference
         uses: actions/checkout@v4
         with:
@@ -439,8 +445,13 @@ jobs:
           done
           adb shell input tap 180 "$tap_y"
           sleep 2
-          # Alpha 1.1.0 통합 탐색 요약 아래의 검색 버튼을 누른다.
-          adb shell input tap 180 319
+          # 360x640, 130% 글꼴에서는 6개 정본 요약 카드가 검색 진입점을
+          # 화면 아래로 밀어낸다. 같은 고정 환경에서 먼저 300dp 스크롤한 뒤
+          # 표시된 검색 버튼 중앙을 눌러 대화상자 증거를 수집한다.
+          adb shell input swipe 180 520 180 220 700
+          sleep 2
+          capture_screen validation-artifacts/search-entrypoint-enlarged-dark.png
+          adb shell input tap 180 455
           sleep 2
           adb shell uiautomator dump /sdcard/search-dialog.xml
           adb pull /sdcard/search-dialog.xml validation-artifacts/search-dialog.xml
