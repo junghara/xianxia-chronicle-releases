@@ -451,7 +451,7 @@ jobs:
           adb shell input swipe 180 520 180 220 700
           sleep 2
           capture_screen validation-artifacts/search-entrypoint-enlarged-dark.png
-          adb shell input tap 180 455
+          adb shell input tap 180 327
           sleep 2
           adb shell uiautomator dump /sdcard/search-dialog.xml
           adb pull /sdcard/search-dialog.xml validation-artifacts/search-dialog.xml
