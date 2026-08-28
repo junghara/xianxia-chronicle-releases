@@ -1,5 +1,23 @@
 # 변경 내역
 
+## Alpha 1.1.0 — 2026-08-28
+
+최종 비공개 소스 `96a6667dd74d6707659a1fd1675de22d65d614f8`을 검증하고 정식 서명 ARM64 APK로 공개했습니다.
+
+- 238/238 요구사항, 58/58 수식, SQLite R6 66/66 테이블, 54/54 법칙 후보, 5/5 관찰 탭
+- 세계·인물·수행·윤회, 사회·조직·경제, 콘텐츠·서적·법칙의 결정론적 정본 확장
+- 여섯 주 권위 도메인의 원자 저장·복원·해시·SQLite 투영
+- 공개 CI Host·Sanitizer·Android 양 ABI·Release emulator 검증 통과
+- 10,000명×1,000년 공개 CI p99 22.938ms/년으로 25ms 하드 게이트 통과
+- 정식 서명 ARM64 APK SHA-256: `0db5ac735a8b0ebb1b3475fba47082fd3cea055381443ab7d8a4d217a8b1c7bc`
+- 238행 RELEASED 증거 SHA-256: `e911befbb6c265ffb17474a880db215a9cb448023eaa127a2778c519956d6a33`
+
+- [Alpha 1.1.0 정식 릴리스](https://github.com/junghara/xianxia-chronicle-releases/releases/tag/v1.1.0)
+- [고정 소스 검증 run 33076315637](https://github.com/junghara/xianxia-chronicle-releases/actions/runs/33076315637)
+- [공식 배포 run 33148766160](https://github.com/junghara/xianxia-chronicle-releases/actions/runs/33148766160)
+
+실기기 프레임·배터리·열·저장 시간 증거는 아직 없으며 완료로 표시하지 않습니다. SQLite R6는 1.0.x XIANSAVE와 저장 경계가 다르므로 업데이트 전 기존 저장을 별도로 보관해야 합니다.
+
 ## Alpha 1.0.9 — 2026-08-14
 
 최종 비공개 소스 `fdd2022a0aa1031d730138df660ffa67deac9298`을 검증하고 정식 서명 ARM64 APK로 공개했습니다.
