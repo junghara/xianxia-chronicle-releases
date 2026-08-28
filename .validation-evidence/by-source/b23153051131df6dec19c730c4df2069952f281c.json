@@ -1,0 +1,1919 @@
+{
+  "apk_sha256": null,
+  "contract": "alpha110.requirement-release-evidence.v1",
+  "evidence_state": "SAME_SHA_VERIFIED",
+  "release_url": null,
+  "requirement_count": 238,
+  "rows": [
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M01",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "e012ac91c65ee1c2217e6fa9bb3a4b84951e0ac97a25819714f33ea1737b34cf",
+      "requirement_id": "A110-M01-V01",
+      "vertical_spec_index": 1
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M01",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "06875c9dfc67284d62806cce00633cbc4eec1ac323ccdaafe6a9dc6da43fd3fc",
+      "requirement_id": "A110-M01-V02",
+      "vertical_spec_index": 2
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M01",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "897b1a358b99aba6d491cb661b0c213fddaf8b6ee4642bd7cb174a0b4797cb77",
+      "requirement_id": "A110-M01-V03",
+      "vertical_spec_index": 3
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M01",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "7767de714da0df0ef87e77de09f2ef7502ad533b4993353d488e4cb5ba9a9371",
+      "requirement_id": "A110-M01-V04",
+      "vertical_spec_index": 4
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M01",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "48e95d8d11565b395cc23470b9779e2b484bd3290d49666034a2ed16fd60a534",
+      "requirement_id": "A110-M01-V05",
+      "vertical_spec_index": 5
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M01",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "03a1616ef8ebf151efa0c8cca9ad54de394e627fc1af54ef2f31ba801775e45f",
+      "requirement_id": "A110-M01-V06",
+      "vertical_spec_index": 6
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M01",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "7f22089bf00217696542d7a8799f626d72e0643ef70fc978d16988696d4b4054",
+      "requirement_id": "A110-M01-V07",
+      "vertical_spec_index": 7
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M01",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "d4e8b444e3bfbd7046024ca9aa09b871630a6708995d21a5470318db799c2733",
+      "requirement_id": "A110-M01-V08",
+      "vertical_spec_index": 8
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M01",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "84e305507dd074bd188947780c63b6c93bbbd7b2256e5722acf0d69e24ef2ae6",
+      "requirement_id": "A110-M01-V09",
+      "vertical_spec_index": 9
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M01",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "6b4f797eda5783fe582090d769a8dbfb08fc865a545e798145022c6678a43187",
+      "requirement_id": "A110-M01-V10",
+      "vertical_spec_index": 10
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M01",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "5296bfe7aa54b0fd7522187079de3eb271af283228522babfd64c02fd907025c",
+      "requirement_id": "A110-M01-V11",
+      "vertical_spec_index": 11
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M01",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "242c5433c49a5d2a3fecde31b88734c870f204eb204905da076a519fa4dd7ad1",
+      "requirement_id": "A110-M01-V12",
+      "vertical_spec_index": 12
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M01",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "8baad27625460785b3369872bda66ffd564deaa4eac5aaba701e27a0aa5af4d9",
+      "requirement_id": "A110-M01-V13",
+      "vertical_spec_index": 13
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M01",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "a03699c3a0e8d7fad1b628d52182f712d8b51f5be67bd78fa37566a0a51231b7",
+      "requirement_id": "A110-M01-V14",
+      "vertical_spec_index": 14
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M01",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "d674fa090cb6ef0944acaee1d5ef48596e2a56c301a093a67d008dc01548cb2c",
+      "requirement_id": "A110-M01-V15",
+      "vertical_spec_index": 15
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M01",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "7155340bc39d1d8c5e09638ae95091162e7d65914d68145baea8990f808d55cb",
+      "requirement_id": "A110-M01-V16",
+      "vertical_spec_index": 16
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M01",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "a411c4fc5cb8122e06ed8248928b8c66d7ff9dccc51f7041b6d85b658e3ade7c",
+      "requirement_id": "A110-M01-V17",
+      "vertical_spec_index": 17
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M02",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "03a913702139df921a73d1fd041e6edd2aea9605453e7295ffcbf8ae55e1bf45",
+      "requirement_id": "A110-M02-V01",
+      "vertical_spec_index": 1
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M02",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "008bce64503fae4e7e50a236e25474edce3bc8e2e4fb23882ac447e0cda16975",
+      "requirement_id": "A110-M02-V02",
+      "vertical_spec_index": 2
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M02",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "f93213f955312603db690a88d0dfd7d884278dcc53efb468bd0e60ee5cbd1f05",
+      "requirement_id": "A110-M02-V03",
+      "vertical_spec_index": 3
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M02",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "ef292e875265f5b76153c38a7c1b291c43f3e815e37568ff910218d2f50771da",
+      "requirement_id": "A110-M02-V04",
+      "vertical_spec_index": 4
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M02",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "9854b38d910749126708519582fba643c31e5a39cc33956bd99d1bbe17a9478a",
+      "requirement_id": "A110-M02-V05",
+      "vertical_spec_index": 5
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M02",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "2d5459efed3f6d753d76dde14ea00ee66835d8930631ff0d0ffc06a3d3231664",
+      "requirement_id": "A110-M02-V06",
+      "vertical_spec_index": 6
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M02",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "28b644e17c2fb5de760f2959ed466da49a6f64b2afed25b2c823f3dcaa7a8385",
+      "requirement_id": "A110-M02-V07",
+      "vertical_spec_index": 7
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M02",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "602a1e4097ca13aba8f7ed8de376954335979770ffbf6d1570d137dab205e271",
+      "requirement_id": "A110-M02-V08",
+      "vertical_spec_index": 8
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M02",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "016a5da88754a197e83451546be44f7e9452cde5e655ae3861b6ee9bc24fcf0a",
+      "requirement_id": "A110-M02-V09",
+      "vertical_spec_index": 9
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M02",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "838e90e0ca64fcf6876d48cb9312135ae0308218f2a03d964db97f90a43c9975",
+      "requirement_id": "A110-M02-V10",
+      "vertical_spec_index": 10
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M02",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "b477413b583a2a17fd71a67df09220a7f02b025883ffdf1933c0720206d10c47",
+      "requirement_id": "A110-M02-V11",
+      "vertical_spec_index": 11
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M02",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "15c6210c2fd37ba34e132baa388fa1d56b04fab2f5d5148d67506dc6e4a706a4",
+      "requirement_id": "A110-M02-V12",
+      "vertical_spec_index": 12
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M02",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "8fc3e120270cc2fd9567055e75402438b8f24b1b7cb46c36001f54bf05dde74e",
+      "requirement_id": "A110-M02-V13",
+      "vertical_spec_index": 13
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M02",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "56baefddb90337af95e57689a4c5cd2ec67f07aba9113111f9abce38abe05bf0",
+      "requirement_id": "A110-M02-V14",
+      "vertical_spec_index": 14
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M02",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "ac6da83f1ec66ab1f7a1abb5bdd8f03a6052c4676dbb5d70750aaec6fedfadf5",
+      "requirement_id": "A110-M02-V15",
+      "vertical_spec_index": 15
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M02",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "e3d737dd492802390583e5acf657f0d621a0fcdd1fda0529c5993fcec3e60d22",
+      "requirement_id": "A110-M02-V16",
+      "vertical_spec_index": 16
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M02",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "ff0c3a115590633a5a8e7fe3cbd32f9323fdf943b4b4ee30ef258d95bd8855fe",
+      "requirement_id": "A110-M02-V17",
+      "vertical_spec_index": 17
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M03",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "a8a6567cbb265c4edd857d1b14577ff3ccf38395b34ae27dc0a8d4ce011cede3",
+      "requirement_id": "A110-M03-V01",
+      "vertical_spec_index": 1
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M03",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "788c8caf812844aa9803a02158b2ad0cd02f18b4a681d7618d9dcd8e69dfe3a6",
+      "requirement_id": "A110-M03-V02",
+      "vertical_spec_index": 2
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M03",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "d71ae4174b94518575739e2e9640f9b62daf42c032ae097f90b97d0a1d0ba946",
+      "requirement_id": "A110-M03-V03",
+      "vertical_spec_index": 3
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M03",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "04b2f56add6056f565a1af50e0a5808ec08c6c4c7cf8b0506b76bd9512f42948",
+      "requirement_id": "A110-M03-V04",
+      "vertical_spec_index": 4
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M03",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "ea2263f76da49f565c77d6ad42b68b8ff5eff81d742547aca656585cba75c601",
+      "requirement_id": "A110-M03-V05",
+      "vertical_spec_index": 5
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M03",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "3c8d3aed400a6394dfe858f82e51eb7edeb769863ecc98010c22a7d59ca42e16",
+      "requirement_id": "A110-M03-V06",
+      "vertical_spec_index": 6
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M03",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "2abb6e8e8883b2de8e69ba6260bfe679682a6cba38a1cb78fca9a830c25542c3",
+      "requirement_id": "A110-M03-V07",
+      "vertical_spec_index": 7
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M03",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "5a3560f23b8829324dd6c9a5b921fee258424513c7b1a4660d36f4ddaee61640",
+      "requirement_id": "A110-M03-V08",
+      "vertical_spec_index": 8
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M03",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "ca9175032c8f9ff3c400053df9ce7fec8b0d5ab8f25bbc5e338c6790be01cf11",
+      "requirement_id": "A110-M03-V09",
+      "vertical_spec_index": 9
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M03",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "5f9710cf8332fdd36ab3d728fbf57677304fd12e1b90d9dc1f935d868d17afdc",
+      "requirement_id": "A110-M03-V10",
+      "vertical_spec_index": 10
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M03",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "8a9988c7eafc31c436e2d732cc0964c6487c7fb037e6f5ad56dbe9f77e162283",
+      "requirement_id": "A110-M03-V11",
+      "vertical_spec_index": 11
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M03",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "1f6a6de5f18b22a2494d7ce4f4a039652ca648d2ca3c4b6b4da6ae76727d2392",
+      "requirement_id": "A110-M03-V12",
+      "vertical_spec_index": 12
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M03",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "d574e50f9e4dcf3ad144bc9722cd4095a4709949266b536fcdda30240ad5be85",
+      "requirement_id": "A110-M03-V13",
+      "vertical_spec_index": 13
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M03",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "291d3fbb17f9abd000685d8090edff606e2d5f3067e1aa1d572baa0bdc467b4d",
+      "requirement_id": "A110-M03-V14",
+      "vertical_spec_index": 14
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M03",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "c1c2dbbf919a726b333689ac7f70024e22444909ac0affc33664a2948b044a93",
+      "requirement_id": "A110-M03-V15",
+      "vertical_spec_index": 15
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M03",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "545221790df48ca92f89dadfce85633e8919d602a140e8181fbbfd087a5231ec",
+      "requirement_id": "A110-M03-V16",
+      "vertical_spec_index": 16
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M03",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "1e8165043e742df08327cf2cb4a881ffde8520f41afdbde62887f0ec6102c2b6",
+      "requirement_id": "A110-M03-V17",
+      "vertical_spec_index": 17
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M04",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "5740272e2528abd3af4dc38d2b4af5227a3aa4d40418b185b74f9d93af612a98",
+      "requirement_id": "A110-M04-V01",
+      "vertical_spec_index": 1
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M04",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "6675a150f60c2ac3f7fa32b9df683bae96b1b32fbd20c85396656aca3a2242f0",
+      "requirement_id": "A110-M04-V02",
+      "vertical_spec_index": 2
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M04",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "e2cc1095d4d8746bec453179eb25d73b6251041391eaa050bf1f57872ec85c09",
+      "requirement_id": "A110-M04-V03",
+      "vertical_spec_index": 3
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M04",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "bcf9f6ca56dd93b8268c08c806b170c58bce8a83087e21f6b7fbc88e001c4c8a",
+      "requirement_id": "A110-M04-V04",
+      "vertical_spec_index": 4
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M04",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "6ec3577421c57ab4e68c64e0d429d999fcfbe03777297322384d0129319cb864",
+      "requirement_id": "A110-M04-V05",
+      "vertical_spec_index": 5
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M04",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "8ece7fd02c324a67ebea9207872e695280cafe96a1004a5377eb8ef004524f89",
+      "requirement_id": "A110-M04-V06",
+      "vertical_spec_index": 6
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M04",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "dbed503663695b91a5a7feac4bdc3bdf708f069eca07b4ca0fe3b6387ba0d56a",
+      "requirement_id": "A110-M04-V07",
+      "vertical_spec_index": 7
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M04",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "2c76781c96f2dc05e40bbc8e14b92b7e5b21aeb216980e207aa1bf0e67843157",
+      "requirement_id": "A110-M04-V08",
+      "vertical_spec_index": 8
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M04",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "25d3ca6d1400cb17079207682d2b080ead47e10faeca1437e3b24312eb19502d",
+      "requirement_id": "A110-M04-V09",
+      "vertical_spec_index": 9
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M04",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "c4777241ac664f2ca279105d100094ac03487c801f123177d4a528134ec2612c",
+      "requirement_id": "A110-M04-V10",
+      "vertical_spec_index": 10
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M04",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "76ac356e6532f3f90c753179ea6d26bd49e4e52a4aa1e54c0d6aea21d8a63258",
+      "requirement_id": "A110-M04-V11",
+      "vertical_spec_index": 11
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M04",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "df3d7b3ea684b7b75ee829c884a994ce7d2e4123831e01d1a3616c7bdd8df646",
+      "requirement_id": "A110-M04-V12",
+      "vertical_spec_index": 12
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M04",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "c56952ebd3cc3e7f82636579cf317718c3ffa21bfcb0811c14215f9bdf89c142",
+      "requirement_id": "A110-M04-V13",
+      "vertical_spec_index": 13
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M04",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "c4da6c34be4837ee383015450e7b65d963e4c8b3490d885a61a13e2ae7a7f0e1",
+      "requirement_id": "A110-M04-V14",
+      "vertical_spec_index": 14
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M04",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "2d22eeae4b32579ceb7b5ad434f17d222ec29fd1626948db16b6d29546af8470",
+      "requirement_id": "A110-M04-V15",
+      "vertical_spec_index": 15
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M04",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "f4df79897e75f3620c091d3a5873338e03863d57ca9afc7d8f7fa0eb5de29731",
+      "requirement_id": "A110-M04-V16",
+      "vertical_spec_index": 16
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M04",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "9c4eba2037716da89db59b92ce8dabf10a4dbd36d6695bc5d6d6ccc55c3f2bcc",
+      "requirement_id": "A110-M04-V17",
+      "vertical_spec_index": 17
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M05",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "8128dd9dda3fd02a3684dde8ac66d7409b1785a220327353e96cee0ef1099423",
+      "requirement_id": "A110-M05-V01",
+      "vertical_spec_index": 1
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M05",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "e1c8b4d898e70bd6be1c86ac5bd64a142f9bb1d425f34cb84ebb8278b2e00146",
+      "requirement_id": "A110-M05-V02",
+      "vertical_spec_index": 2
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M05",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "98fec51f03f9dfb47ed99f5220cbae410fa3740f80ca22c46766cfc907e21ef8",
+      "requirement_id": "A110-M05-V03",
+      "vertical_spec_index": 3
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M05",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "5e0c55fbc3b59afc25c6661e4631fd87b3c5c748d25332dfc59763037116aedd",
+      "requirement_id": "A110-M05-V04",
+      "vertical_spec_index": 4
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M05",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "fa09a5f456b32b35e50555d573aa5a0cac3a90bd98ed353e201bf4548acd878c",
+      "requirement_id": "A110-M05-V05",
+      "vertical_spec_index": 5
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M05",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "06609805409865e9701a5a9e57c78e639758afa7bfe7221ba376083c4e52d888",
+      "requirement_id": "A110-M05-V06",
+      "vertical_spec_index": 6
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M05",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "0426b80e5b6e6f54c6e4adbb510302282b35d8e28dff32a73d75703ac4d71d9f",
+      "requirement_id": "A110-M05-V07",
+      "vertical_spec_index": 7
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M05",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "eadf3d19bfc0bce51c6b97f3677d4bcc8c48feb5e064b75fa5486f7e64c07678",
+      "requirement_id": "A110-M05-V08",
+      "vertical_spec_index": 8
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M05",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "66d83d75307204d394c64cfedda8836186d55e7141360c294de633fa4d988908",
+      "requirement_id": "A110-M05-V09",
+      "vertical_spec_index": 9
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M05",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "83d4a64ac10e7cc305f6db8d08e2a52efbe2da277d03fe8966f22f555bab6d2a",
+      "requirement_id": "A110-M05-V10",
+      "vertical_spec_index": 10
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M05",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "c48f7dcbabc7f7ba66c759b744d8db432125463b5c6a20d67ccc037eb2b72d92",
+      "requirement_id": "A110-M05-V11",
+      "vertical_spec_index": 11
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M05",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "5c68658b4d9c6262af3acae6b462a8422e02760ba1f0d9672b6428053069b360",
+      "requirement_id": "A110-M05-V12",
+      "vertical_spec_index": 12
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M05",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "fe12c88a8303935d77d81fcbe58792ad30b532eddd3d6f546598904c7c43ab58",
+      "requirement_id": "A110-M05-V13",
+      "vertical_spec_index": 13
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M05",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "dd069457db13bf8a03d82b1962600acdfa533c0c70aa06f675e1b78140de9f69",
+      "requirement_id": "A110-M05-V14",
+      "vertical_spec_index": 14
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M05",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "212fa721dcff9b22e0fc54a87acca5fc8b30797450f15ed5c2b5bae1b77911d7",
+      "requirement_id": "A110-M05-V15",
+      "vertical_spec_index": 15
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M05",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "d981c0f63961fbeb0b4c3da60483822a8bd60ce4645b41c0247c8e5d333fe167",
+      "requirement_id": "A110-M05-V16",
+      "vertical_spec_index": 16
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M05",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "65cfb7f72a35b155b7efc9625d3e576b10eeda20118bfbfaa03e6e34ed485754",
+      "requirement_id": "A110-M05-V17",
+      "vertical_spec_index": 17
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M06",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "2a1991aa204130a85330f7499f57e61cad7a51a9068656ed7bddbe4782cb7e31",
+      "requirement_id": "A110-M06-V01",
+      "vertical_spec_index": 1
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M06",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "fcb4e230d6ff683d2a36618081b2c56678de708c37b5dcdae70baf9412eec165",
+      "requirement_id": "A110-M06-V02",
+      "vertical_spec_index": 2
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M06",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "5ff1d9072e1339aa28ecf12730006f1ae0e8934774db54feefa41074397de7ee",
+      "requirement_id": "A110-M06-V03",
+      "vertical_spec_index": 3
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M06",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "c9d5978bb5041597c2c8c430aa9e0bd1a257e970bfc8574b77ba2821c6247180",
+      "requirement_id": "A110-M06-V04",
+      "vertical_spec_index": 4
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M06",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "2cf1ceeb2c01997500719337dc2f240270ae9f7266e3257ef436eda29ac25670",
+      "requirement_id": "A110-M06-V05",
+      "vertical_spec_index": 5
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M06",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "1cf184af0a76204e832e4ed9637723fd3e2b885b5ce8d581873f5c20d7667bd3",
+      "requirement_id": "A110-M06-V06",
+      "vertical_spec_index": 6
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M06",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "14265971b07908ba34144591543824a97654c9731ccc2294190cd463ce6fc297",
+      "requirement_id": "A110-M06-V07",
+      "vertical_spec_index": 7
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M06",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "8ae3da08fd5c53f430da2f6a5ff59a6905080630c264d8530694c00592b1b609",
+      "requirement_id": "A110-M06-V08",
+      "vertical_spec_index": 8
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M06",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "54fb34b31c81660472665aa04bfe3fca7db34fe35b10df400e222662c5043d51",
+      "requirement_id": "A110-M06-V09",
+      "vertical_spec_index": 9
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M06",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "ff46d4adb5d72398a8dbdfa87d30f50dbb9d951635bf1b7d30837776315a07d1",
+      "requirement_id": "A110-M06-V10",
+      "vertical_spec_index": 10
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M06",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "91c366dfcdee1cb47740185b4521276bafc2d6d1f1ee88cdb9157470f6501d08",
+      "requirement_id": "A110-M06-V11",
+      "vertical_spec_index": 11
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M06",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "08abd018815b2d63b0be555c85f1a9910f1c60f8142587b10969a0e8bf22e77e",
+      "requirement_id": "A110-M06-V12",
+      "vertical_spec_index": 12
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M06",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "d6310f7506fc1bc8f1b4ae054d31c9c3e5182183958c474f9367af5994a41171",
+      "requirement_id": "A110-M06-V13",
+      "vertical_spec_index": 13
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M06",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "9e75624bcaa7280dbe50be894fa68c9c1891da1fb38830fc5f02cf777c93a2de",
+      "requirement_id": "A110-M06-V14",
+      "vertical_spec_index": 14
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M06",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "3a65090727db91b76fe63a91e03228b7ed18c0dbb263b19840eafc58ea5a7f67",
+      "requirement_id": "A110-M06-V15",
+      "vertical_spec_index": 15
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M06",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "ff99353a4f0862c1a0c8881c77f15a489395327b3b8239cf1f4809986b1950a6",
+      "requirement_id": "A110-M06-V16",
+      "vertical_spec_index": 16
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M06",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "13a1ca01010bb6920b3b9609246c69310084d51bcf350adc76942c2d178cbfd9",
+      "requirement_id": "A110-M06-V17",
+      "vertical_spec_index": 17
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M07",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "d69e77ebb1232eb390eeee449b697ef82779975525959c0c02639f747b47720e",
+      "requirement_id": "A110-M07-V01",
+      "vertical_spec_index": 1
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M07",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "26020df8c3f2030b9db22afaa8482b5c5e4bc8c0a2bc7d3df02a0c97879f0e25",
+      "requirement_id": "A110-M07-V02",
+      "vertical_spec_index": 2
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M07",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "d02bee0059d070caa6c7504c24b6e233f79da3ad607faff3c25ebcd512c48e1f",
+      "requirement_id": "A110-M07-V03",
+      "vertical_spec_index": 3
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M07",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "5db2ce857c36138e0b0d8c766e9c30ac872b75985fa1d0797095fd61a3efd6c8",
+      "requirement_id": "A110-M07-V04",
+      "vertical_spec_index": 4
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M07",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "260060d27055b2c7590554f7e695ad1e398447edc516ad267d9f439c2dbe4afe",
+      "requirement_id": "A110-M07-V05",
+      "vertical_spec_index": 5
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M07",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "348fd22a9400d35ca773e36214e4cc9329ad92b2d6e184c82e4e7632c3b49628",
+      "requirement_id": "A110-M07-V06",
+      "vertical_spec_index": 6
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M07",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "ae0039fe632f77bd45c276d60e01b7a5a3a5c18a2dc288f893286786b3c699c6",
+      "requirement_id": "A110-M07-V07",
+      "vertical_spec_index": 7
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M07",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "0b7cba8c136583c1a9049adb8f8122c90a1421f4fc7be9de9df44b6ed81548fd",
+      "requirement_id": "A110-M07-V08",
+      "vertical_spec_index": 8
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M07",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "c7a46c7df206338a1cc82f880b1a2a0637cd74da95647231c55cfa4d31e5d4b0",
+      "requirement_id": "A110-M07-V09",
+      "vertical_spec_index": 9
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M07",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "c2badd7f1b7937e882ee99e059d0ee2f05d18acfcb582b2c0b183b7a012434cd",
+      "requirement_id": "A110-M07-V10",
+      "vertical_spec_index": 10
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M07",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "d058a076eeff1c1e3d2edb7f7b7e920c804f22dc393bada5e1d012227cdf5f35",
+      "requirement_id": "A110-M07-V11",
+      "vertical_spec_index": 11
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M07",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "eff402209042a2ffa727d41e75adb1dec0eb22dbd84568509c942efb0688b757",
+      "requirement_id": "A110-M07-V12",
+      "vertical_spec_index": 12
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M07",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "b1146d2bd5eb874bb48592f2be3e6432ee5ad377bd9c35fa760170c3269395fb",
+      "requirement_id": "A110-M07-V13",
+      "vertical_spec_index": 13
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M07",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "841241899bf082b90653d0b2cdee72c25a8ae2db0b9ea25003d0b727e31cc86b",
+      "requirement_id": "A110-M07-V14",
+      "vertical_spec_index": 14
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M07",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "bb9d6780288e3e600fe4d4f129dad570f515c0cdb202271021565f74709ca485",
+      "requirement_id": "A110-M07-V15",
+      "vertical_spec_index": 15
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M07",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "4d865d55e6c18de7ccc756bcafb693e9a0e2e7967f5b4c6655d4120159b8b343",
+      "requirement_id": "A110-M07-V16",
+      "vertical_spec_index": 16
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M07",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "4b74aeedb2da92a213c80c9aef29a307a6f5c5ea6d82d483b5f0f74b9193be4d",
+      "requirement_id": "A110-M07-V17",
+      "vertical_spec_index": 17
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M08",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "86825dd5eb86283688309f71d9581fe5e91bad5467a259bba6dcdc1d8270acf6",
+      "requirement_id": "A110-M08-V01",
+      "vertical_spec_index": 1
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M08",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "34598e80cb493c2ee571d059ccd26bb23ef0fb6d9f03f67f35bd90ff53d65254",
+      "requirement_id": "A110-M08-V02",
+      "vertical_spec_index": 2
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M08",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "8165050d4cd1d32f0355e95900be6a24a3d5ac10bbabaded024e412d33c73020",
+      "requirement_id": "A110-M08-V03",
+      "vertical_spec_index": 3
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M08",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "629558fa5d3aabb8b397b49cca610d4bbb2aee5f660be69268bf1c525cbb598f",
+      "requirement_id": "A110-M08-V04",
+      "vertical_spec_index": 4
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M08",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "6eb91c427a1c091602908b6c803a2bb33b1750b8c310889ed1566613d7dfd9da",
+      "requirement_id": "A110-M08-V05",
+      "vertical_spec_index": 5
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M08",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "6ff1ecc9ce00602affbd3755ff80194cc97de89b62d58e85946b099b3b485499",
+      "requirement_id": "A110-M08-V06",
+      "vertical_spec_index": 6
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M08",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "7cec946cf24ad4fa89662b3bc4ac985d96bd3ce13a4357d5dd8d2b09ccd04985",
+      "requirement_id": "A110-M08-V07",
+      "vertical_spec_index": 7
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M08",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "1ddc5cda01cee6b3083a47682334b60444d8acd39897dcce54841008155f2dfa",
+      "requirement_id": "A110-M08-V08",
+      "vertical_spec_index": 8
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M08",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "e9a87484a8da3fe0ba2c5e6b56b79cd148ee74b3b243abcdea32ae875d6d11c0",
+      "requirement_id": "A110-M08-V09",
+      "vertical_spec_index": 9
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M08",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "5f6d5d27894b7a7e992eee8f4794ee15ef4db4e4051d762143348a6da0d405c8",
+      "requirement_id": "A110-M08-V10",
+      "vertical_spec_index": 10
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M08",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "73f0864d8df9fab3b251dc9c0d84e1d7dbe2c0319626720616f5c5d44de73356",
+      "requirement_id": "A110-M08-V11",
+      "vertical_spec_index": 11
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M08",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "134ecb8093f14292ecd9ec92d2c4b9c9274949efb397bd3cec5c5bcf162d68c4",
+      "requirement_id": "A110-M08-V12",
+      "vertical_spec_index": 12
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M08",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "a389e106eda9d589f149bf6ec605830e5c152bc56e0bc73e85c1f524fb0b89cc",
+      "requirement_id": "A110-M08-V13",
+      "vertical_spec_index": 13
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M08",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "b0fdca1b5dc8fde16b0008cd334bbfcd13ceb20380bf789c3745e68271f87118",
+      "requirement_id": "A110-M08-V14",
+      "vertical_spec_index": 14
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M08",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "5117710ed83a55c3dce39908e906b64c23f7fb66d5db2925ae5ca604d995d916",
+      "requirement_id": "A110-M08-V15",
+      "vertical_spec_index": 15
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M08",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "7d848222314dfca9faa696292414a3130e39935fc06f7239147c0f7cfecda929",
+      "requirement_id": "A110-M08-V16",
+      "vertical_spec_index": 16
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M08",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "9828607bc8502f30248dacd07c4b81470c646086423717f66684a0aa903488e0",
+      "requirement_id": "A110-M08-V17",
+      "vertical_spec_index": 17
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M09",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "ff1759405b28131dfbfa2b62f7a30ebec61c2825b80103dd0a0aa30e94ff2d90",
+      "requirement_id": "A110-M09-V01",
+      "vertical_spec_index": 1
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M09",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "7293ba41906dab641dff5a35df5de8bf76bec0419f3875f108c2631f37613eb7",
+      "requirement_id": "A110-M09-V02",
+      "vertical_spec_index": 2
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M09",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "528f6ad547fbea00f196e2a7e652ea3710b548f995af180bc1e7e94a6343fcc9",
+      "requirement_id": "A110-M09-V03",
+      "vertical_spec_index": 3
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M09",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "12522b8965137f4aa36157162f1b13c23018c1f57a33bc63a62258efc4116f0b",
+      "requirement_id": "A110-M09-V04",
+      "vertical_spec_index": 4
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M09",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "66019be10be70289ab8688e849a926ba8154e58cac831431f03c4b5fa845491c",
+      "requirement_id": "A110-M09-V05",
+      "vertical_spec_index": 5
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M09",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "14822d3c851292807209188acc90164b940544b283e4ccd1a185ac03790a24cb",
+      "requirement_id": "A110-M09-V06",
+      "vertical_spec_index": 6
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M09",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "fc140613c4d6fb4dbffd4f47eee42baf64c4ef6cb5d7f00943cb513e7a3408f1",
+      "requirement_id": "A110-M09-V07",
+      "vertical_spec_index": 7
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M09",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "54d67ffa2b23db2bcff912a430ce899946e97ea49d0cde2f345f10e43acc8464",
+      "requirement_id": "A110-M09-V08",
+      "vertical_spec_index": 8
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M09",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "f154ede568b916dc74ed0aa79082ec47064a2ded82da09387598236f6bee74a5",
+      "requirement_id": "A110-M09-V09",
+      "vertical_spec_index": 9
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M09",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "f93c5497d56209791c962b4bf4dfd4ad26b2bcf6e28af7caf4120a87873e2d13",
+      "requirement_id": "A110-M09-V10",
+      "vertical_spec_index": 10
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M09",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "04edb9b6bb78a5cd56f0511dafc59a0b42127133cdfdcc4e6e47e2901c31fa9f",
+      "requirement_id": "A110-M09-V11",
+      "vertical_spec_index": 11
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M09",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "ce266bf44af2ea145cefa5c27e80cb0bc14a3ecec64994476c64071484a3fbb0",
+      "requirement_id": "A110-M09-V12",
+      "vertical_spec_index": 12
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M09",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "3fc2a9db7d36ce0a056dcca8fda7bb7717ff68358b065d835dfabc960290a19d",
+      "requirement_id": "A110-M09-V13",
+      "vertical_spec_index": 13
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M09",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "082984c5253b347e9f512fd6300303920017cdb1e2c2b7d3edb9bc9c50f7634e",
+      "requirement_id": "A110-M09-V14",
+      "vertical_spec_index": 14
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M09",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "8d197dfac5a2da79b76bd971b1da48ad14a770d9c2105770d6425a3d1c806339",
+      "requirement_id": "A110-M09-V15",
+      "vertical_spec_index": 15
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M09",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "3ee1431b501a7af7e013b936e71f23ea0d7c2b98385587ebad7818e5f8e6d3e4",
+      "requirement_id": "A110-M09-V16",
+      "vertical_spec_index": 16
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M09",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "b531ad07f3b46fc3ba13c30b24d7bc320b6b9e99ba66e47118ccc7ba7d65a90a",
+      "requirement_id": "A110-M09-V17",
+      "vertical_spec_index": 17
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M10",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "a60050118b09c652056fd8510f7574bdb721a26f6bbe104e4bb8ca1e4ad4407c",
+      "requirement_id": "A110-M10-V01",
+      "vertical_spec_index": 1
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M10",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "960e53ed9cfc47696ec6f15e4d7e777187ada596bd5a8393430bd9ac62a41070",
+      "requirement_id": "A110-M10-V02",
+      "vertical_spec_index": 2
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M10",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "6fa277272b7e097252894c7b2322542c2b815325d8173c1d8098e671ddbc4d7e",
+      "requirement_id": "A110-M10-V03",
+      "vertical_spec_index": 3
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M10",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "56835cec4507a7e83369321cbc4a7d1b9734d1e79d405e90ec6bf062d8a464c3",
+      "requirement_id": "A110-M10-V04",
+      "vertical_spec_index": 4
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M10",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "d52c667b3e90726772ead01931c62c8676126081748b435bf473bccc8acaad60",
+      "requirement_id": "A110-M10-V05",
+      "vertical_spec_index": 5
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M10",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "9e03fb1ecbfd99fd578b351d140b08370899f547d3975f4d2d3a63764111c28d",
+      "requirement_id": "A110-M10-V06",
+      "vertical_spec_index": 6
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M10",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "933bae81830912eb615463ade220caf7d1d8cc539be732a25363eac2d8b247b3",
+      "requirement_id": "A110-M10-V07",
+      "vertical_spec_index": 7
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M10",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "02e6194d9090d0aae522d0b6d975a8e9138591bf0137edcd47c1ec85b4611207",
+      "requirement_id": "A110-M10-V08",
+      "vertical_spec_index": 8
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M10",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "87615caf66cd1aa98a8d3ce3a9c24e9b129857bb37952ba1e04bbd56167e0e08",
+      "requirement_id": "A110-M10-V09",
+      "vertical_spec_index": 9
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M10",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "bbc302ac4d0e3235057ba74145a287cae6fc94ea9f044872bd9ed7a2aeb9afa6",
+      "requirement_id": "A110-M10-V10",
+      "vertical_spec_index": 10
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M10",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "dbd2a73d63a9706c3ff8bda63951f917505a7db59d94374c82a501b1d80435a1",
+      "requirement_id": "A110-M10-V11",
+      "vertical_spec_index": 11
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M10",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "e2abca5a4cb7a565a278b1159d50579b14ab45bb102a881b9792daf87d50c5e0",
+      "requirement_id": "A110-M10-V12",
+      "vertical_spec_index": 12
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M10",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "a612f5cc5dff44c45389e4a6530180b7050b23a1b38b624a99a62d356ded2c31",
+      "requirement_id": "A110-M10-V13",
+      "vertical_spec_index": 13
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M10",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "af3947ac78777fd6b743cac711a93cb1c049721e2eefbf64653b1e2dfbd75143",
+      "requirement_id": "A110-M10-V14",
+      "vertical_spec_index": 14
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M10",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "b3001256aa9d602ff59e1b29a18b45039acbecb93b8c546cc0b1b0e50b8804ca",
+      "requirement_id": "A110-M10-V15",
+      "vertical_spec_index": 15
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M10",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "827c77e27bfb4ddcf7e9d85d136d7fdd77320c7d772d3bdefdea780f1990bf0f",
+      "requirement_id": "A110-M10-V16",
+      "vertical_spec_index": 16
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M10",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "b70b6959f40a2c46db1613ffc2c7d7df06dc08c62344d6bf34217e01a2539e5c",
+      "requirement_id": "A110-M10-V17",
+      "vertical_spec_index": 17
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M11",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "9e3240ba3f91f1363058094a6bf0731933be3be07c69e63800f2c34b0fb3d26d",
+      "requirement_id": "A110-M11-V01",
+      "vertical_spec_index": 1
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M11",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "36c3489734028698268394d6c62d37d32853d3cb0f834c8d3909d83173fcfda2",
+      "requirement_id": "A110-M11-V02",
+      "vertical_spec_index": 2
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M11",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "7bcab829f5064e1b34dbed251d24b81735a6b5b8e05a8256c8f9495ec6acd278",
+      "requirement_id": "A110-M11-V03",
+      "vertical_spec_index": 3
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M11",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "5b1c0191921159b9548769871f71cf917ee6d6341ab81de5da2ebad60f3245e0",
+      "requirement_id": "A110-M11-V04",
+      "vertical_spec_index": 4
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M11",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "6ff8b7a77042c6fe069ed65c44ba33d9b2ca3f6d7e297c5ae2ab67269032f05e",
+      "requirement_id": "A110-M11-V05",
+      "vertical_spec_index": 5
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M11",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "03c9a988a9302c77f7a3d9d8b7d354284f5f01d6205628cc65631b6da499f754",
+      "requirement_id": "A110-M11-V06",
+      "vertical_spec_index": 6
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M11",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "2f4ea9567d59231d4228811d5fce9a6e9dfecf6f64aa87c74f96676f06b36fb1",
+      "requirement_id": "A110-M11-V07",
+      "vertical_spec_index": 7
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M11",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "ebc0c2c80fec7e0760abb590e7dcee56806948b5d02f602fd1347e35917a5cfd",
+      "requirement_id": "A110-M11-V08",
+      "vertical_spec_index": 8
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M11",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "d663d1acad2adc23f99d374948dab04a50b2ceebf5b6876d5fc4b10974c8ace6",
+      "requirement_id": "A110-M11-V09",
+      "vertical_spec_index": 9
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M11",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "2bb5d9691c5a6653aeaa6eddb1a027a680167c8635dc395c2fe0ed3747ee7bac",
+      "requirement_id": "A110-M11-V10",
+      "vertical_spec_index": 10
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M11",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "182aaec315e4be776c018b93b7da46202fe763d076c1fdb422a992bac0fd3feb",
+      "requirement_id": "A110-M11-V11",
+      "vertical_spec_index": 11
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M11",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "b85ffaa2461633a6a6fb252428f61efbc8009868bdd9fb4c045010f5bb519f4d",
+      "requirement_id": "A110-M11-V12",
+      "vertical_spec_index": 12
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M11",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "65ea7b004763a360ec8669c7116715cd4099adac03875a371fb6b93fb86f618c",
+      "requirement_id": "A110-M11-V13",
+      "vertical_spec_index": 13
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M11",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "745faf88ff71093339c0e9784b0daa2fa6eb5077202f688eb65262b04dd23245",
+      "requirement_id": "A110-M11-V14",
+      "vertical_spec_index": 14
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M11",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "6313d001e1551e4fba1376659f924836badd8f83cbb3a16023823955a19b0dc5",
+      "requirement_id": "A110-M11-V15",
+      "vertical_spec_index": 15
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M11",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "e7fdc9231300b0f0e8746327e97525cfbb41446e12361130bd7003665b62d10e",
+      "requirement_id": "A110-M11-V16",
+      "vertical_spec_index": 16
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M11",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "fe8cd5701a1ef84ba532ae81a2d5b43beec5cc5aa41f5aa154be44bb54aa164c",
+      "requirement_id": "A110-M11-V17",
+      "vertical_spec_index": 17
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M12",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "836093e9d91669ea9ba114a7f89c159fdf00cf64a23ec81349d0db3b0ba24c4b",
+      "requirement_id": "A110-M12-V01",
+      "vertical_spec_index": 1
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M12",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "70cd4c0038a8902813962b24278a0e57ac166ca34a692c19993eb43799395d47",
+      "requirement_id": "A110-M12-V02",
+      "vertical_spec_index": 2
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M12",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "b1abe4f7643ac0972dd3b3f940be6188ab7e09600be3ec88d74edc2dcdcb90f4",
+      "requirement_id": "A110-M12-V03",
+      "vertical_spec_index": 3
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M12",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "6973a8785222219d0f209f7e6061127de67093051e64796f32bfdb3ff67fb95e",
+      "requirement_id": "A110-M12-V04",
+      "vertical_spec_index": 4
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M12",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "4af16546bf77a981c0e3b78be3e153ce2702bbbe6e01b89b70c75ec2e4b2a77d",
+      "requirement_id": "A110-M12-V05",
+      "vertical_spec_index": 5
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M12",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "98415c0af655b96d99f04d8b9cfedb8fe3942e6b1ad9b805098547b27c72a463",
+      "requirement_id": "A110-M12-V06",
+      "vertical_spec_index": 6
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M12",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "d367a9daeff2df94af6fdeee51c729a266491ad57bffddceea91b5f91e66940b",
+      "requirement_id": "A110-M12-V07",
+      "vertical_spec_index": 7
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M12",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "e09b233112d8fb354b83dc0be22eb7912f053395c30c5a44cf9ce64278ebd15c",
+      "requirement_id": "A110-M12-V08",
+      "vertical_spec_index": 8
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M12",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "5319eb422498b6c175fcd3027de9f1bbdd8829983798677811c4792b022ad47a",
+      "requirement_id": "A110-M12-V09",
+      "vertical_spec_index": 9
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M12",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "0869e77d115548cc0ed87f16f55ce149c14680bc02afbac4f53aa4ad0c68073c",
+      "requirement_id": "A110-M12-V10",
+      "vertical_spec_index": 10
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M12",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "0fa63321fb29e2375844d76c3dcc43117a0d4a043b35e7cdd9756a502f9aa8f0",
+      "requirement_id": "A110-M12-V11",
+      "vertical_spec_index": 11
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M12",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "b9e5adc5e47f09449846f46b6efa5dcc9fc5a73467c95cab045c5bedca78a639",
+      "requirement_id": "A110-M12-V12",
+      "vertical_spec_index": 12
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M12",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "4800ace2dc3b188ec047260882a01fdc3a2d4a5da01b80e64acdeb976793365e",
+      "requirement_id": "A110-M12-V13",
+      "vertical_spec_index": 13
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M12",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "de602b3712785f6792b9cb26f67090fe50ba2387cecdb289f992fa9a529aa412",
+      "requirement_id": "A110-M12-V14",
+      "vertical_spec_index": 14
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M12",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "47097a90cfd2102a4dd840c58ab8bd2f257d8b948d194c8f1b5f1c58e89df023",
+      "requirement_id": "A110-M12-V15",
+      "vertical_spec_index": 15
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M12",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "4469e96a2580170f70829e2ef7d96aa89d1e80255c2e9cbf71e05162d466139c",
+      "requirement_id": "A110-M12-V16",
+      "vertical_spec_index": 16
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M12",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "a868125e403c3a4e8e650b416d9c4d0b94511ab5fef91fc26385b122d2e9ad43",
+      "requirement_id": "A110-M12-V17",
+      "vertical_spec_index": 17
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M13",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "5ac97718b686cead5a9f59d6662ad03368dcadf6f7a15cd347e537d44ee67c84",
+      "requirement_id": "A110-M13-V01",
+      "vertical_spec_index": 1
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M13",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "3d2e24aaab7ba68a4e4cad3fc6fc279109f5c5cf87289a262ccf833c2e61ca25",
+      "requirement_id": "A110-M13-V02",
+      "vertical_spec_index": 2
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M13",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "94af90e95ee14a7f8811ad533524702a2fa730c922e1c785c218acabfc82a516",
+      "requirement_id": "A110-M13-V03",
+      "vertical_spec_index": 3
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M13",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "f250fb09acd37f08c151ad52de02a92aeef4a742f324effb87d5a7df7bc80730",
+      "requirement_id": "A110-M13-V04",
+      "vertical_spec_index": 4
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M13",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "31759810225099d1f9386e81d973f98e28c80cbb04d3df1484922bd91b3ab812",
+      "requirement_id": "A110-M13-V05",
+      "vertical_spec_index": 5
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M13",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "95cad1f31371732e8a21ffa4675f3958ef4e9b20eae6d95cf4d1f8ba13c74fd5",
+      "requirement_id": "A110-M13-V06",
+      "vertical_spec_index": 6
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M13",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "dbed140d0e0d3deec1fabb43f588d8ad522d8da83e038a76049d31bb8d6342a2",
+      "requirement_id": "A110-M13-V07",
+      "vertical_spec_index": 7
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M13",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "973446257ce49effde06e8ece8e5e7112b9bb0b26c0bcaa41efea151db44a9c8",
+      "requirement_id": "A110-M13-V08",
+      "vertical_spec_index": 8
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M13",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "2305efbbf62be0b305109dc9c5e5fe3d80edc79a9f063569ee52145526473ebf",
+      "requirement_id": "A110-M13-V09",
+      "vertical_spec_index": 9
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M13",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "6741e8b503a89956eb4124f90e65c87199c7ccbb29f3178db5cd4d8f5294a991",
+      "requirement_id": "A110-M13-V10",
+      "vertical_spec_index": 10
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M13",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "22c90a2369c74a8c19b91f47731e9fe5b47d835ea709bf0074bb1a28544927ef",
+      "requirement_id": "A110-M13-V11",
+      "vertical_spec_index": 11
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M13",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "9d36f39f1bf7ff1c631b934c63736bc58ace6b8d0226307c1a2ff55d43949443",
+      "requirement_id": "A110-M13-V12",
+      "vertical_spec_index": 12
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M13",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "fc130e219509ab8afa15078d13004662cbdd74a8e5f04a469786944c3ee7e4c2",
+      "requirement_id": "A110-M13-V13",
+      "vertical_spec_index": 13
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M13",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "ce342c587b4a66c01bf95e32556f2c0d99080a22626dce7b8e0ed2e3e6e30f69",
+      "requirement_id": "A110-M13-V14",
+      "vertical_spec_index": 14
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M13",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "2b77de00f16e7d02057f53ebe5839c636ff29de0114bdb90fb6c7339eafaa5ca",
+      "requirement_id": "A110-M13-V15",
+      "vertical_spec_index": 15
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M13",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "3b67113c7f8a35d7faa2dc46e6589bbbb0ae1ab761f5a019c0aad29efdcd1f62",
+      "requirement_id": "A110-M13-V16",
+      "vertical_spec_index": 16
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M13",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "3186adbc2052250a3e46d04e99fe9076ee3372433b2e95246c8bdffd05f583b1",
+      "requirement_id": "A110-M13-V17",
+      "vertical_spec_index": 17
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M14",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "f57da82ae437258b1e099ee268e9becf99b6541b701dba2366eb2a427521f2e3",
+      "requirement_id": "A110-M14-V01",
+      "vertical_spec_index": 1
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M14",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "336cc408a40b24bed00ec1808e13b462b2a395622a08330c8a353e82bbcaaf45",
+      "requirement_id": "A110-M14-V02",
+      "vertical_spec_index": 2
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M14",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "cbbfd06d04bf272796b85bf39624ae766af6e15930371e2d1ae92eb0abe07731",
+      "requirement_id": "A110-M14-V03",
+      "vertical_spec_index": 3
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M14",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "536aaae0398fc9bf8a8d75267c482f45803506227e5410559d55250be5b1c62a",
+      "requirement_id": "A110-M14-V04",
+      "vertical_spec_index": 4
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M14",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "502b38eae8f372179214624723ae34b7c9b3dcfe629d566074ce77404e2f497a",
+      "requirement_id": "A110-M14-V05",
+      "vertical_spec_index": 5
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M14",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "5d024ef79aa6dfcf3976ad55c84e9949b579c781d5e11b09fba23b884ed3a3b5",
+      "requirement_id": "A110-M14-V06",
+      "vertical_spec_index": 6
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M14",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "6f4e5cde36395beaf8005332122ee63fa5be3abbec91be0a637cb7c7118ff68f",
+      "requirement_id": "A110-M14-V07",
+      "vertical_spec_index": 7
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M14",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "9fd7008fdff4a71c0f64442ba4bbd7e5b36d192bccd19630854fbbebaf5ee26d",
+      "requirement_id": "A110-M14-V08",
+      "vertical_spec_index": 8
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M14",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "e6840c34e83313eb369ba9c81197c3ea83d15bf75fc2733d2950769d8f2c3379",
+      "requirement_id": "A110-M14-V09",
+      "vertical_spec_index": 9
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M14",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "091cd0594603aba9e6ca11c05f51eecad82ef1a042b4b1a56cc430ab328b2bb4",
+      "requirement_id": "A110-M14-V10",
+      "vertical_spec_index": 10
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M14",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "6dbbc66339a830fddacf4276299a8da6c8f909ea1c07baf3ccd03353da570fe2",
+      "requirement_id": "A110-M14-V11",
+      "vertical_spec_index": 11
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M14",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "209efbde03141752b5c3e5d38f37ea7f5930c1e05f2940bdf76516a134e685c4",
+      "requirement_id": "A110-M14-V12",
+      "vertical_spec_index": 12
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M14",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "cf1df9907bcac5a1572687b434e1b782b34d2544250a8e52ecda5e4d62581f2a",
+      "requirement_id": "A110-M14-V13",
+      "vertical_spec_index": 13
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M14",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "74e1b387aea7e8b21f3dbb93be7bdb8f1f46b893aa921f1bce9a8136a3f65443",
+      "requirement_id": "A110-M14-V14",
+      "vertical_spec_index": 14
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M14",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "08589fb6329147eeb8f7af0a215bef3050ad2fb296a67a47946d7aff8c1a49f2",
+      "requirement_id": "A110-M14-V15",
+      "vertical_spec_index": 15
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M14",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "6dbe725d7b426ae30336843bec4cdf29622eb564e82ebc237fcbb6aecf10d467",
+      "requirement_id": "A110-M14-V16",
+      "vertical_spec_index": 16
+    },
+    {
+      "evidence_state": "SAME_SHA_VERIFIED",
+      "master_id": "M14",
+      "merge_sha": "b23153051131df6dec19c730c4df2069952f281c",
+      "notion_requirement_sha256": "794252c90237e8fc273e8ea7308ef0f8755287de9c2920ad389ca6c8a82de2e9",
+      "requirement_id": "A110-M14-V17",
+      "vertical_spec_index": 17
+    }
+  ],
+  "source_manifest": "data/alpha110/requirement_coverage_manifest.json",
+  "source_manifest_sha256": "09194dfb3b26bb4afd0414fe3ca44cc27bf474a1d9874c3c4cf4677b8b19c732",
+  "source_ref": "b23153051131df6dec19c730c4df2069952f281c",
+  "validation_status_sha256": "a72bb6749f5a3acb36ca05c8ee3d6e9e2dd8329eb507498c2592270bea24b3be",
+  "version": "1.1.1",
+  "workflow_run_id": "33174662919"
+}
