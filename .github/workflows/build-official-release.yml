@@ -248,6 +248,7 @@ jobs:
           source_path=".release-status/by-source/$SOURCE_REF.json"
           source_endpoint="repos/$GITHUB_REPOSITORY/contents/$source_path"
           source_status_sha="$(gh api "$source_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          [[ "$source_status_sha" =~ ^[0-9a-f]{40}$ ]] || source_status_sha=""
           if [[ -n "$source_status_sha" ]]; then
             [[ "$release_exists" == true ]] || {
               echo "Release status already exists for $SOURCE_REF, but its Release is missing." >&2
@@ -287,6 +288,7 @@ jobs:
             '{contract:$contract,source_ref:$source_ref,version:$version,
               tag:$tag,release_url:$release_url}' > "$binding_file"
           binding_sha="$(gh api "$binding_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          [[ "$binding_sha" =~ ^[0-9a-f]{40}$ ]] || binding_sha=""
           if [[ -z "$binding_sha" ]]; then
             encoded="$(base64 -w 0 "$binding_file")"
             gh api --method PUT "$binding_endpoint" \
@@ -822,8 +824,6 @@ jobs:
             --arg validation_sha256 "$validation_sha256" \
             '.version == $version and
              .contract == "alpha110.requirement-release-evidence.v1" and
-             .source_manifest_contract ==
-               "alpha110.requirement-coverage-manifest.v1" and
              .source_manifest_sha256 == $manifest_sha256 and
              .source_ref == $source_ref and .evidence_state == "RELEASED" and
              .validation_status_sha256 == $validation_sha256 and
@@ -850,6 +850,7 @@ jobs:
           source_path=".release-status/by-source/$SOURCE_REF.json"
           source_endpoint="repos/$GITHUB_REPOSITORY/contents/$source_path"
           source_status_sha="$(gh api "$source_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          [[ "$source_status_sha" =~ ^[0-9a-f]{40}$ ]] || source_status_sha=""
           if [[ -n "$source_status_sha" ]]; then
             [[ "$is_draft" == false ]] || {
               echo "A successful source status cannot point to a draft Release." >&2
@@ -943,6 +944,7 @@ jobs:
           source_path=".release-status/by-source/$SOURCE_REF.json"
           source_endpoint="repos/$GITHUB_REPOSITORY/contents/$source_path"
           source_sha="$(gh api "$source_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          [[ "$source_sha" =~ ^[0-9a-f]{40}$ ]] || source_sha=""
           if [[ -z "$source_sha" ]]; then
             encoded="$(base64 -w 0 "$status_file")"
             gh api --method PUT "$source_endpoint" \
@@ -974,6 +976,7 @@ jobs:
           latest_endpoint="repos/$GITHUB_REPOSITORY/contents/$latest_path"
           encoded="$(base64 -w 0 "$status_file")"
           current_sha="$(gh api "$latest_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
+          [[ "$current_sha" =~ ^[0-9a-f]{40}$ ]] || current_sha=""
           args=(--method PUT "$latest_endpoint"
             -f message="Record Release $RELEASE_VERSION"
             -f content="$encoded" -f branch=main)

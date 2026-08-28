@@ -649,7 +649,7 @@ jobs:
           latest_endpoint="repos/$GITHUB_REPOSITORY/contents/$latest_path"
           latest_encoded="$(base64 -w 0 "$status_file")"
           latest_sha="$(gh api "$latest_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
-          [[ "$latest_sha" == "null" ]] && latest_sha=""
+          [[ "$latest_sha" =~ ^[0-9a-f]{40}$ ]] || latest_sha=""
           latest_args=(--method PUT "$latest_endpoint"
             -f message="Record source validation $VERSION"
             -f content="$latest_encoded" -f branch=main)
@@ -668,7 +668,7 @@ jobs:
           source_status_path=".validation-status/by-source/$SOURCE_REF.json"
           source_status_endpoint="repos/$GITHUB_REPOSITORY/contents/$source_status_path"
           source_status_sha="$(gh api "$source_status_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
-          [[ "$source_status_sha" == "null" ]] && source_status_sha=""
+          [[ "$source_status_sha" =~ ^[0-9a-f]{40}$ ]] || source_status_sha=""
           canonical_status="$RUNNER_TEMP/canonical-validation-status.json"
           if [[ -n "$source_status_sha" ]]; then
             gh api "$source_status_endpoint?ref=main" --jq '.content' |
@@ -703,7 +703,7 @@ jobs:
           evidence_path=".validation-evidence/by-source/$SOURCE_REF.json"
           evidence_endpoint="repos/$GITHUB_REPOSITORY/contents/$evidence_path"
           evidence_sha="$(gh api "$evidence_endpoint?ref=main" --jq '.sha' 2>/dev/null || true)"
-          [[ "$evidence_sha" == "null" ]] && evidence_sha=""
+          [[ "$evidence_sha" =~ ^[0-9a-f]{40}$ ]] || evidence_sha=""
           if [[ -n "$evidence_sha" ]]; then
             existing_evidence="$RUNNER_TEMP/existing-same-sha-evidence.json"
             gh api "$evidence_endpoint?ref=main" --jq '.content' |
