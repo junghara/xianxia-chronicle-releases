@@ -542,6 +542,11 @@ jobs:
           arch: x86_64
           target: google_apis
           disk-size: 4096M
+          pre-emulator-launch-script: |
+            sed -i 's/^disk\.dataPartition\.size=.*/disk.dataPartition.size=4096M/' \
+              "$HOME/.android/avd/test.avd/config.ini"
+            grep -F 'disk.dataPartition.size=4096M' \
+              "$HOME/.android/avd/test.avd/config.ini"
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: bash "$RUNNER_TEMP/alpha-1.1.0-emulator-evidence.sh"
