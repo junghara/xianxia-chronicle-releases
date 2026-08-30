@@ -543,6 +543,7 @@ jobs:
           target: google_apis
           disk-size: 4096M
           pre-emulator-launch-script: >-
+            rm -rf "$ANDROID_HOME/cmake/3.22.1" &&
             sed -i 's/^disk\.dataPartition\.size=.*/disk.dataPartition.size=4096M/g'
             "$HOME/.android/avd/test.avd/config.ini" &&
             grep -F 'disk.dataPartition.size=4096M'
