@@ -445,13 +445,13 @@ jobs:
           done
           adb shell input tap 180 "$tap_y"
           sleep 2
-          # 360x640, 130% 글꼴에서는 6개 정본 요약 카드가 검색 진입점을
-          # 화면 아래로 밀어낸다. 같은 고정 환경에서 먼저 300dp 스크롤한 뒤
-          # 표시된 검색 버튼 중앙을 눌러 대화상자 증거를 수집한다.
+          # 360x640, 130% 글꼴에서 요약 카드와 Alpha 1.1.2의 6분류
+          # 탐색 탭이 검색 진입점을 아래로 민다. 300dp 스크롤 뒤 캡처된
+          # 버튼의 고정 환경 중앙을 눌러 대화상자 증거를 수집한다.
           adb shell input swipe 180 520 180 220 700
           sleep 2
           capture_screen validation-artifacts/search-entrypoint-enlarged-dark.png
-          adb shell input tap 180 327
+          adb shell input tap 180 438
           sleep 2
           adb shell uiautomator dump /sdcard/search-dialog.xml
           adb pull /sdcard/search-dialog.xml validation-artifacts/search-dialog.xml
@@ -462,9 +462,13 @@ jobs:
           sleep 2
           adb shell input tap 180 "$tap_y"
           sleep 2
+          # Alpha 1.1.2의 두 줄 탐색 탭(114dp)만큼 더 스크롤해 기존
+          # 인물 결과 카드와 같은 뷰포트 위치를 맞춘다.
+          adb shell input swipe 180 500 180 386 700
+          sleep 2
           adb shell input tap 180 470
           sleep 2
-          adb shell input swipe 180 540 180 240 8000
+          adb shell input swipe 180 540 180 126 8000
           sleep 3
           capture_screen \
             validation-artifacts/agent-overview-selected-enlarged-dark.png
@@ -478,7 +482,7 @@ jobs:
             tab_y="${coordinates##*:}"
             adb shell input tap "$tab_x" "$tab_y"
             sleep 2
-            adb shell input swipe 180 540 180 240 8000
+            adb shell input swipe 180 540 180 126 8000
             sleep 3
             capture_screen \
               "validation-artifacts/agent-$name-selected-enlarged-dark.png"
